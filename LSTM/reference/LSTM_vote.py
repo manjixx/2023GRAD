@@ -79,7 +79,6 @@ class S_ATT(tf.keras.Model):
         self.dense_query7 = tf.keras.layers.Dense(units=1024, activation=tf.nn.leaky_relu)
         self.dense_query8 = tf.keras.layers.Dense(units=1024, activation=tf.nn.leaky_relu)
 
-        //
         self.lstm = tf.keras.layers.LSTM(units=1024, activation=tf.nn.leaky_relu,return_sequences=True)
 
         self.dense1 = tf.keras.layers.Dense(units=4096, activation=tf.nn.leaky_relu)
