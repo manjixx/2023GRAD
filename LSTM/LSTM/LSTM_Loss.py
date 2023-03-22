@@ -31,50 +31,21 @@ def data_loader():
     print(f'train_size length: {train_size}')
     print(f'test_size length: {len(x) / 7 - train_size}')
 
-    # x_split = []
-    # y_split = []
-    #
-    # for i in range(0, size):
-    #     start = i * 7
-    #     end = (i + 1) * 7
-    #     x_hat = x[start: end, :]
-    #     y_hat = label[start: end, :]
-    #     for j in range(0, 4):
-    #         x_split.append(x_hat[j: j + 3, :])
-    #         y_split.append(y_hat[j + 3: j + 4, :])
-    # print(f'x_split shape: {np.array(x_split).shape}')
-    # print(f'y_split shape: {np.array(y_split).shape}')
+    x_split = []
+    y_split = []
 
-    x_train = []
-    y_train = []
-    x_test = []
-    y_test = []
-
-    for i in range(0, 640):
+    for i in range(0, size):
         start = i * 7
         end = (i + 1) * 7
         x_hat = x[start: end, :]
         y_hat = label[start: end, :]
         for j in range(0, 4):
-            x_train.append(x_hat[j: j + 3, :])
-            y_train.append(y_hat[j + 3: j + 4, :])
+            x_split.append(x_hat[j: j + 3, :])
+            y_split.append(y_hat[j + 3: j + 4, :])
+    print(f'x_split shape: {np.array(x_split).shape}')
+    print(f'y_split shape: {np.array(y_split).shape}')
 
-    for i in range(640, round(len(x) / 7)):
-        start = i * 7
-        end = (i + 1) * 7
-        x_hat = x[start: end, :]
-        y_hat = label[start: end, :]
-        for j in range(0, 4):
-            x_test.append(x_hat[j: j + 3, :])
-            y_test.append(y_hat[j + 3: j + 4, :])
-
-    print(f'train_feature shape: {np.array(x_train).shape}')
-    print(f'test_feature shape: {np.array(x_test).shape}')
-    print(f'y_train shape: {np.array(y_train).shape}')
-    print(f'y_test shape: {np.array(y_test).shape}')
-
-    return np.array(x_train), np.array(y_train), np.array(x_test), np.array(y_test)
-    # return np.array(x_split), np.array(y_split)
+    return np.array(x_split), np.array(y_split)
 
 
 class LSTMClassifier(tf.keras.Model):
@@ -219,14 +190,11 @@ def train():
     callbacks = [earlyStop]
     tf.config.experimental_run_functions_eagerly(True)
     model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
-    model.fit(x={'feature': x_train},
-              y=[y_train, y_train],
+    model.fit(train_dataset,
               epochs=num_epochs,
-              batch_size=batch_size,
-              validation_split=0.1,
+              validation_data=val_dataset,
               callbacks=callbacks,
-              verbose=1,
-              shuffle=True)
+              verbose=1)
     checkpoint = tf.train.Checkpoint(classifier=model)
     path = checkpoint.save('save_model/model_lstm.ckpt')
     print("model saved to %s" % path)
@@ -236,13 +204,8 @@ def test():
     checkpoint = tf.train.Checkpoint(classifier=model)
     checkpoint.restore('save_model/model_lstm.ckpt-1').expect_partial()
     y_pred = model({'feature': x_test}, training=False)
-    print(np.array(y_pred[0]).shape)
-    print(np.array(y_pred[1]).shape)
-
     y_pred = tf.squeeze(y_pred[0], axis=1)
     y = tf.squeeze(y_test, axis=1)
-    print(f'y shape: {np.array(y).shape}')
-
     y_pred = np.argmax(y_pred, axis=1)
     print('准确率：' + str(accuracy_score(y_pred, y)))
     print('精确率 macro：' + str(precision_score(y_pred, y, average='macro')))
@@ -263,8 +226,16 @@ if __name__ == '__main__':
 
     alpha, beta = 0, 0
 
-    x_train, y_train, x_test, y_test = data_loader()
+    x, y = data_loader()
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
+
+    x_train, x_val, y_train, y_val = train_test_split(x, y, test_size=0.1)
+
+    train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train, y_train))
+    val_dataset = tf.data.Dataset.from_tensor_slices((x_val, y_val, y_val))
+    test_dataset = tf.data.Dataset.from_tensor_slices(x_test, y_test, y_test)
 
     model = LSTMClassifier()
-    # train()
-    test()
+    train()
+    model.evaluate()
+    # test()
