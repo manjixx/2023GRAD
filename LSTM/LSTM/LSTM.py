@@ -24,57 +24,25 @@ def data_loader():
     # season ta hr va age height weight bmi griffith gender pmv
     x = np.concatenate((season, x, gender[:, None], label), axis=1)
 
-    size = round(len(x)/7)
-    print(f'dataset length: {size}')
-
-    train_size = round(len(x) / 7 * 0.8)
-    print(f'train_size length: {train_size}')
-    print(f'test_size length: {len(x) / 7 - train_size}')
-
-    # x_split = []
-    # y_split = []
-    #
-    # for i in range(0, size):
-    #     start = i * 7
-    #     end = (i + 1) * 7
-    #     x_hat = x[start: end, :]
-    #     y_hat = label[start: end, :]
-    #     for j in range(0, 4):
-    #         x_split.append(x_hat[j: j + 3, :])
-    #         y_split.append(y_hat[j + 3: j + 4, :])
-    # print(f'x_split shape: {np.array(x_split).shape}')
-    # print(f'y_split shape: {np.array(y_split).shape}')
-
-    x_train = []
-    y_train = []
-    x_test = []
-    y_test = []
-
-    for i in range(0, 640):
+    x_split = []
+    y_split = []
+    for i in range(0, round(len(x) / 7)):
         start = i * 7
         end = (i + 1) * 7
         x_hat = x[start: end, :]
         y_hat = label[start: end, :]
         for j in range(0, 4):
-            x_train.append(x_hat[j: j + 3, :])
-            y_train.append(y_hat[j + 3: j + 4, :])
+            x_split.append(x_hat[j: j + 3, :])
+            y_split.append(y_hat[j + 3: j + 4, :])
 
-    for i in range(640, round(len(x) / 7)):
-        start = i * 7
-        end = (i + 1) * 7
-        x_hat = x[start: end, :]
-        y_hat = label[start: end, :]
-        for j in range(0, 4):
-            x_test.append(x_hat[j: j + 3, :])
-            y_test.append(y_hat[j + 3: j + 4, :])
+    x_train, x_test, y_train, y_test = train_test_split(x_split, y_split, test_size=test_size)
 
-    print(f'train_feature shape: {np.array(x_train).shape}')
-    print(f'test_feature shape: {np.array(x_test).shape}')
+    print(f'x_train shape: {np.array(x_train).shape}')
     print(f'y_train shape: {np.array(y_train).shape}')
+    print(f'x_test shape: {np.array(x_test).shape}')
     print(f'y_test shape: {np.array(y_test).shape}')
 
     return np.array(x_train), np.array(y_train), np.array(x_test), np.array(y_test)
-    # return np.array(x_split), np.array(y_split)
 
 
 class LSTMClassifier(tf.keras.Model):
@@ -107,9 +75,6 @@ class LSTMClassifier(tf.keras.Model):
         Ta = data[0:, 0:, 1:2]
         Pa = tf.math.log1p(Ta)
 
-        # print(f'data shape: {data.shape}')
-        # print(f'Ta shape: {Ta.shape}')
-
         M_input = self.drop(body, training=training)
         M = self.dense_M1(M_input)
         M = self.drop(M, training=training)
@@ -121,10 +86,11 @@ class LSTMClassifier(tf.keras.Model):
         Tsk = tf.abs(self.dense_Tsk2(Tsk_input))
         Psk = tf.math.log1p(Tsk)
 
-        # M, Tsk, Psk, Pa, S, season, ta, hr, va, age, height, weight, bmi, griffith, gender
+        # M, Tsk, Psk, Pa, season, ta, hr, va, age, height, weight, bmi, griffith, gender
+
         s_input = []
-        for i in range(0, batch_size):
-            s_input.append(tf.concat([M[i], Tsk[i], Psk[i], Pa[i], env[i], body[i]], axis=1))
+        for (m, tsk, psk, pa, e, b) in zip(M, Tsk, Psk, Pa, env, body):
+            s_input.append(tf.concat([m, tsk, psk, pa, e, b], axis=1))
 
         s_input = self.drop(s_input, training=training)
         S = self.dense_S1(s_input)
@@ -133,9 +99,8 @@ class LSTMClassifier(tf.keras.Model):
 
         # M, Tsk, Psk, Pa, S, season ta hr  va age height weight bmi griffith gender pmv
         lstm_input = []
-        for i in range(0, batch_size):
-            lstm_input.append(tf.concat([M[i], Tsk[i], Psk[i], Pa[i], S[i], data[i]], axis=1))
-        # lstm_input = self.drop(S, training=training)
+        for (m, tsk, psk, pa, s, d) in zip(M, Tsk, Psk, Pa, S, data):
+            lstm_input.append(tf.concat([m, tsk, psk, pa, s, d], axis=1))
 
         lstm_input = self.drop(lstm_input, training=training)
         lstm = self.lstm(lstm_input)
@@ -150,21 +115,15 @@ class LSTMClassifier(tf.keras.Model):
         dense = self.drop(dense, training=training)
         dense = self.dense_PMV5(dense)
 
-        output = tf.nn.softmax(dense)
+        output = tf.nn.softmax(dense)[:, 2:3, :]
 
-        output = output[:, 2:3, :]
-
-        # ta hr va age height weight bmi griffith
         # ta hr va age height weight bmi griffith gender pmv
         data = data[:, 2:3, 1:]
 
         x = []
-        for i in range(0, batch_size):
-            x.append(tf.concat((data[i], output[i]), axis=1))
-
-        x = tf.reshape(x, [batch_size, 1, 13])
-        # print(f'output shape: {output.shape}')
-        # print(f'x shape: {x.shape}')
+        for (d, o) in zip(data, output):
+            x.append(tf.concat((d, o), axis=1))
+        x = tf.reshape(x, [len(data), 1, 13])
 
         return [output, x]
 
@@ -205,7 +164,7 @@ def CE_loss(y_true, y_pred):
 
 def Accuracy(y_true, y_pred):
     y_pred = tf.squeeze(y_pred, axis=1)
-    y_true = tf.reshape(y_true, [batch_size, 1])
+    y_true = tf.reshape(y_true, [len(y_true), 1])
     y_pred = np.argmax(y_pred, axis=1)
     return accuracy_score(y_pred, y_true)
 
@@ -223,10 +182,11 @@ def train():
               y=[y_train, y_train],
               epochs=num_epochs,
               batch_size=batch_size,
-              validation_split=0.1,
+              validation_split=val_size,
               callbacks=callbacks,
               verbose=1,
-              shuffle=True)
+              shuffle=True,
+              steps_per_epoch=None)
     checkpoint = tf.train.Checkpoint(classifier=model)
     path = checkpoint.save('save_model/model_lstm.ckpt')
     print("model saved to %s" % path)
@@ -236,13 +196,8 @@ def test():
     checkpoint = tf.train.Checkpoint(classifier=model)
     checkpoint.restore('save_model/model_lstm.ckpt-1').expect_partial()
     y_pred = model({'feature': x_test}, training=False)
-    print(np.array(y_pred[0]).shape)
-    print(np.array(y_pred[1]).shape)
-
     y_pred = tf.squeeze(y_pred[0], axis=1)
     y = tf.squeeze(y_test, axis=1)
-    print(f'y shape: {np.array(y).shape}')
-
     y_pred = np.argmax(y_pred, axis=1)
     print('准确率：' + str(accuracy_score(y_pred, y)))
     print('精确率 macro：' + str(precision_score(y_pred, y, average='macro')))
@@ -259,6 +214,8 @@ def test():
 if __name__ == '__main__':
     scaler = MinMaxScaler()
 
+    test_size, val_size = 0.2, 0.1
+
     num_epochs, batch_size, learning_rate = 128, 32, 0.008
 
     alpha, beta = 0, 0
@@ -266,5 +223,5 @@ if __name__ == '__main__':
     x_train, y_train, x_test, y_test = data_loader()
 
     model = LSTMClassifier()
-    # train()
+    train()
     test()
