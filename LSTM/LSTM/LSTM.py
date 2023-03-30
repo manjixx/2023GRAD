@@ -11,6 +11,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = "1"
 
 
 def data_loader():
+    # preference sensitivity environment
     env = np.load('../dataset/summer/env.npy', allow_pickle=True).astype(float)  # ta hr va
     season = np.load('../dataset/summer/season.npy', allow_pickle=True).astype(int)  # season
     date = np.load('../dataset/summer/date.npy', allow_pickle=True)  # date
@@ -33,7 +34,7 @@ def data_loader():
         y_hat = label[start: end, :]
         for j in range(0, 4):
             x_split.append(x_hat[j: j + 3, :])
-            y_split.append(y_hat[j + 3: j + 4, :])
+            y_split.append(y_hat[j + 2: j + 3, :])
 
     x_train, x_test, y_train, y_test = train_test_split(x_split, y_split, test_size=test_size)
 
@@ -197,7 +198,11 @@ def test():
     checkpoint.restore('save_model/model_lstm.ckpt-1').expect_partial()
     y_pred = model({'feature': x_test}, training=False)
     y_pred = tf.squeeze(y_pred[0], axis=1)
+    print(f'y_pred shape:{np.array(y_pred).shape}')
+    print(f'y_test shape:{np.array(y_test).shape}')
+
     y = tf.squeeze(y_test, axis=1)
+    print(f'y_test shape:{np.array(y).shape}')
     y_pred = np.argmax(y_pred, axis=1)
     print('准确率：' + str(accuracy_score(y_pred, y)))
     print('精确率 macro：' + str(precision_score(y_pred, y, average='macro')))
@@ -216,9 +221,9 @@ if __name__ == '__main__':
 
     test_size, val_size = 0.2, 0.1
 
-    num_epochs, batch_size, learning_rate = 128, 32, 0.008
+    num_epochs, batch_size, learning_rate = 128, 64, 0.008
 
-    alpha, beta = 0, 0
+    alpha, beta = 0.3, 0.5
 
     x_train, y_train, x_test, y_test = data_loader()
 

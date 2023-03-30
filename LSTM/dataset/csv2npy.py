@@ -211,23 +211,22 @@ if __name__ == '__main__':
     body3, gender3, env3, date3, label3 = deal_2021_summer()
 
     '''save data'''
-
-    body = pd.concat([body1, body2, body3], axis=0).reset_index(drop=True)
-    gender = pd.concat([gender1, gender2, gender3], axis=0).reset_index(drop=True)
-    env = pd.concat([env1, env2, env3], axis=0).reset_index(drop=True)
-    date = pd.concat([date1, date2, date3], axis=0).reset_index(drop=True)
-    label = pd.concat([label1, label2, label3], axis=0).reset_index(drop=True)
-    season = []
-    for i in range(0, label.shape[0]):
-        season.append(0)
-    season = pd.DataFrame({'season': season})
-
-    np.save('./summer/body.npy', body)
-    np.save('./summer/gender.npy', gender)
-    np.save('./summer/env.npy', env)
-    np.save('./summer/date.npy', date)
-    np.save('./summer/season.npy', season)
-    np.save('./summer/label.npy', label)
+    # body = pd.concat([body1, body2, body3], axis=0).reset_index(drop=True)
+    # gender = pd.concat([gender1, gender2, gender3], axis=0).reset_index(drop=True)
+    # env = pd.concat([env1, env2, env3], axis=0).reset_index(drop=True)
+    # date = pd.concat([date1, date2, date3], axis=0).reset_index(drop=True)
+    # label = pd.concat([label1, label2, label3], axis=0).reset_index(drop=True)
+    # season = []
+    # for i in range(0, label.shape[0]):
+    #     season.append(0)
+    # season = pd.DataFrame({'season': season})
+    #
+    # np.save('./summer/body.npy', body)
+    # np.save('./summer/gender.npy', gender)
+    # np.save('./summer/env.npy', env)
+    # np.save('./summer/date.npy', date)
+    # np.save('./summer/season.npy', season)
+    # np.save('./summer/label.npy', label)
 
     ''' 2019 winter'''
     body4, gender4, env4, date4, label4 = deal_2019_winter()
@@ -236,40 +235,61 @@ if __name__ == '__main__':
     body5, gender5, env5, date5, label5 = deal_2021_winter()
 
     '''save data'''
-    body = pd.concat([body4, body5], axis=0).reset_index(drop=True)
-    gender = pd.concat([gender4, gender5], axis=0).reset_index(drop=True)
-    env = pd.concat([env4, env5], axis=0).reset_index(drop=True)
-    date = pd.concat([date4, date5], axis=0).reset_index(drop=True)
-    label = pd.concat([label4, label5], axis=0).reset_index(drop=True)
-
-    season = []
-    for i in range(0, label.shape[0]):
-        season.append(1)
-    season = pd.DataFrame({'season': season})
-
-    np.save('./winter/body.npy', body)
-    np.save('./winter/gender.npy', gender)
-    np.save('./winter/env.npy', env)
-    np.save('./winter/date.npy', date)
-    np.save('./winter/season.npy', season)
-    np.save('./winter/label.npy', label)
+    # body = pd.concat([body4, body5], axis=0).reset_index(drop=True)
+    # gender = pd.concat([gender4, gender5], axis=0).reset_index(drop=True)
+    # env = pd.concat([env4, env5], axis=0).reset_index(drop=True)
+    # date = pd.concat([date4, date5], axis=0).reset_index(drop=True)
+    # label = pd.concat([label4, label5], axis=0).reset_index(drop=True)
+    #
+    # season = []
+    # for i in range(0, label.shape[0]):
+    #     season.append(1)
+    # season = pd.DataFrame({'season': season})
+    #
+    # np.save('./winter/body.npy', body)
+    # np.save('./winter/gender.npy', gender)
+    # np.save('./winter/env.npy', env)
+    # np.save('./winter/date.npy', date)
+    # np.save('./winter/season.npy', season)
+    # np.save('./winter/label.npy', label)
 
     '''save data'''
 
-    body = pd.concat([body1, body2, body3, body4, body5], axis=0).reset_index(drop=True)
-    gender = pd.concat([gender1, gender2, gender3, gender4, gender5], axis=0).reset_index(drop=True)
-    env = pd.concat([env1, env2, env3, env4, env5], axis=0).reset_index(drop=True)
-    date = pd.concat([date1, date2, date3, date4, date5], axis=0).reset_index(drop=True)
-    label = pd.concat([label1, label2, label3, label4, label5], axis=0).reset_index(drop=True)
+    # body = pd.concat([body1, body2, body3, body4, body5], axis=0).reset_index(drop=True)
+    # gender = pd.concat([gender1, gender2, gender3, gender4, gender5], axis=0).reset_index(drop=True)
+    # env = pd.concat([env1, env2, env3, env4, env5], axis=0).reset_index(drop=True)
+    # date = pd.concat([date1, date2, date3, date4, date5], axis=0).reset_index(drop=True)
+    # label = pd.concat([label1, label2, label3, label4, label5], axis=0).reset_index(drop=True)
+    # season = []
+    # for i in range(0, label.shape[0]):
+    #     season.append(0)
+    # season = pd.DataFrame({'season': season})
+    #
+    # np.save('./all/body.npy', body)
+    # np.save('./all/gender.npy', gender)
+    # np.save('./all/env.npy', env)
+    # np.save('./all/date.npy', date)
+    # np.save('./all/season.npy', season)
+    # np.save('./all/label.npy', label)
+    #
+
+    '''save data'''
+
+    body = pd.concat([body3, body5], axis=0).reset_index(drop=True)
+    gender = pd.concat([gender3, gender5], axis=0).reset_index(drop=True)
+    env = pd.concat([env3, env5], axis=0).reset_index(drop=True)
+    date = pd.concat([date3, date5], axis=0).reset_index(drop=True)
+    label = pd.concat([label3, label5], axis=0).reset_index(drop=True)
     season = []
-    for i in range(0, label.shape[0]):
+    for i in range(0, label3.shape[0]):
         season.append(0)
+    for i in range(label3.shape[0], label.shape[0]):
+        season.append(1)
     season = pd.DataFrame({'season': season})
 
-    np.save('./all/body.npy', body)
-    np.save('./all/gender.npy', gender)
-    np.save('./all/env.npy', env)
-    np.save('./all/date.npy', date)
-    np.save('./all/season.npy', season)
-    np.save('./all/label.npy', label)
-
+    np.save('./2021/body.npy', body)
+    np.save('./2021/gender.npy', gender)
+    np.save('./2021/env.npy', env)
+    np.save('./2021/date.npy', date)
+    np.save('./2021/season.npy', season)
+    np.save('./2021/label.npy', label)
