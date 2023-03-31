@@ -12,19 +12,30 @@ os.environ['CUDA_VISIBLE_DEVICES'] = "1"
 
 def data_loader():
     # preference sensitivity environment
-    env = np.load('../dataset/summer/env.npy', allow_pickle=True).astype(float)  # ta hr va
+    env1 = np.load('../dataset/2021/env.npy', allow_pickle=True).astype(float)  # ta hr va
+    env2 = np.load('../dataset/2021/env.npy', allow_pickle=True).astype(float)  # ta hr va
+    env = np.concatenate((env1, env2), axis=0)
     print(len(env))
-    season = np.load('../dataset/summer/season.npy', allow_pickle=True).astype(int)  # season
-    date = np.load('../dataset/summer/date.npy', allow_pickle=True)  # date
-    body = np.load('../dataset/summer/body.npy', allow_pickle=True).astype(float)  # age height weight bmi griffith
-    gender = np.load('../dataset/summer/gender.npy', allow_pickle=True).astype(int)  # gender
-    label = np.load('../dataset/summer/label.npy', allow_pickle=True).astype(int)  # pmv
+    season1 = np.load('../dataset/2021/season.npy', allow_pickle=True).astype(int)  # season
+    season2 = np.load('../dataset/2021/season.npy', allow_pickle=True).astype(int)  # season
+    season = np.concatenate((season1, season2), axis=0)
+    date = np.load('../dataset/2021/date.npy', allow_pickle=True)  # date
+    body1 = np.load('../dataset/2021/body.npy', allow_pickle=True).astype(float)  # age height weight bmi
+    body2 = np.load('../dataset/2021/body.npy', allow_pickle=True).astype(float)  # age height weight bmi
+    body = np.concatenate((body1, body2), axis=0)
+    gender1 = np.load('../dataset/2021/gender.npy', allow_pickle=True).astype(int)  # griffith, gender, sensitivity, preference, environment
+    gender2 = np.load('../dataset/2021/gender.npy', allow_pickle=True).astype(int)  # griffith, gender, sensitivity, preference, environment
+    gender = np.concatenate((gender1, gender2), axis=0)
 
-    # normalization: [ta hr va age height weight bmi griffith]
+    label1 = np.load('../dataset/2021/label.npy', allow_pickle=True).astype(int)  # pmv
+    label2 = np.load('../dataset/2021/label.npy', allow_pickle=True).astype(int)  # pmv
+    label = np.concatenate((label1, label2), axis=0)
+
+    # normalization: [ta hr va age height weight bmi]
     x = np.concatenate((env, body), axis=1)
     x = scaler.fit_transform(x)
-    # season ta hr va age height weight bmi griffith gender pmv
-    x = np.concatenate((season, x, gender[:, None], label), axis=1)
+    # season ta hr va age height weight bmi griffith, gender, sensitivity, preference, environment
+    x = np.concatenate((season, x, gender,label), axis=1)
 
     x_split = []
     y_split = []
@@ -70,9 +81,9 @@ class LSTMClassifier(tf.keras.Model):
         self.dense_PMV5 = tf.keras.layers.Dense(units=3, activation=tf.nn.leaky_relu)
 
     def call(self, inputs, training=None, mask=None):
-        # get data
-        data = inputs['feature']  # season ta hr va age height weight bmi griffith gender pmv
-        body = data[0:, 0:, 4:10]
+        # season ta hr va age height weight bmi griffith, gender, sensitivity, preference, environment, label
+        data = inputs['feature']
+        body = data[0:, 0:, 4:13]
         env = data[0:, 0:, 1:4]
         Ta = data[0:, 0:, 1:2]
         Pa = tf.math.log1p(Ta)
@@ -88,7 +99,7 @@ class LSTMClassifier(tf.keras.Model):
         Tsk = tf.abs(self.dense_Tsk2(Tsk_input))
         Psk = tf.math.log1p(Tsk)
 
-        # M, Tsk, Psk, Pa, season, ta, hr, va, age, height, weight, bmi, griffith, gender
+        # M, Tsk, Psk, Pa, season, ta,hr,va,age,height,weight,bmi,griffith,gender,sensitivity,preference,environment
 
         s_input = []
         for (m, tsk, psk, pa, e, b) in zip(M, Tsk, Psk, Pa, env, body):
@@ -99,7 +110,9 @@ class LSTMClassifier(tf.keras.Model):
         s_input = self.drop(S, training=training)
         S = self.dense_S2(s_input)
 
-        # M, Tsk, Psk, Pa, S, season ta hr  va age height weight bmi griffith gender pmv
+        # M, Tsk, Psk, Pa, S, season ta hr va
+        # age height weight bmi griffith, gender, sensitivity,preference,environment,
+        # label
         lstm_input = []
         for (m, tsk, psk, pa, s, d) in zip(M, Tsk, Psk, Pa, S, data):
             lstm_input.append(tf.concat([m, tsk, psk, pa, s, d], axis=1))
@@ -119,23 +132,24 @@ class LSTMClassifier(tf.keras.Model):
 
         output = tf.nn.softmax(dense)[:, 2:3, :]
 
-        # ta hr va age height weight bmi griffith gender pmv
+        # ta hr va age height weight bmi griffith, gender, sensitivity, preference, environment, label
         data = data[:, 2:3, 1:]
 
         x = []
         for (d, o) in zip(data, output):
             x.append(tf.concat((d, o), axis=1))
-        x = tf.reshape(x, [len(data), 1, 13])
+        x = tf.reshape(x, [len(data), 1, 16])
 
         return [output, x]
 
 
 def R_loss(y_true, input):
+    # ta hr va age height weight bmi griffith, gender, sensitivity, preference, environment, label, y_pred
     input = tf.squeeze(input, axis=1)
-    data = scaler.inverse_transform(input[:, 0:8])
+    data = scaler.inverse_transform(input[:, 0:7])
     ta = data[:, 0:1]
     # ta hr va age height weight bmi griffith gender pmv y_pred
-    y_pred = input[:, 10:]
+    y_pred = input[:, 13:]
     y_exp = []
     # ta 映射
     for i in range(0, len(ta)):

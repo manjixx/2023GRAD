@@ -143,7 +143,7 @@ def deal_2021_summer():
 
     # 人员特征
     body = data[body_feature].reset_index(drop=True)
-    gender = data['gender'].reset_index(drop=True)
+    gender = data[gender_feature].reset_index(drop=True)
 
     # 环境特征
     va = []
@@ -176,7 +176,7 @@ def deal_2021_winter():
 
     # 人员特征
     body = data[body_feature].reset_index(drop=True)
-    gender = data['gender'].reset_index(drop=True)
+    gender = data[gender_feature].reset_index(drop=True)
 
     # 环境特征
     va = []
@@ -196,16 +196,17 @@ def deal_2021_winter():
 if __name__ == '__main__':
 
     # 性别特征不需要归一化最后添加
-    body_feature = ['age', 'height', 'weight', 'bmi', 'griffith']
+    body_feature = ['age', 'height', 'weight', 'bmi']
     # 风速部分数据集需要自己生成
     env_feature = ['ta', 'hr']
+    gender_feature = ['griffith', 'gender', 'sensitivity', 'preference', 'environment']
     y_feature = 'thermal sensation'
 
-    '''2018 summer'''
-    body1, gender1, env1, date1, label1 = deal_2018()
-
-    ''' 2019 summer'''
-    body2, gender2, env2,  date2, label2 = deal_2019_summer()
+    # '''2018 summer'''
+    # body1, gender1, env1, date1, label1 = deal_2018()
+    #
+    # ''' 2019 summer'''
+    # body2, gender2, env2,  date2, label2 = deal_2019_summer()
 
     ''' 2021 summer'''
     body3, gender3, env3, date3, label3 = deal_2021_summer()
@@ -228,8 +229,8 @@ if __name__ == '__main__':
     # np.save('./summer/season.npy', season)
     # np.save('./summer/label.npy', label)
 
-    ''' 2019 winter'''
-    body4, gender4, env4, date4, label4 = deal_2019_winter()
+    # ''' 2019 winter'''
+    # body4, gender4, env4, date4, label4 = deal_2019_winter()
 
     ''' 2021 winter'''
     body5, gender5, env5, date5, label5 = deal_2021_winter()
