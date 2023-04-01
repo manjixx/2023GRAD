@@ -3,9 +3,9 @@ import pandas as pd
 import numpy as np
 import csv
 import random
-import matplotlib.pyplot as plt
-import seaborn as sns
+import os
 from random import shuffle
+
 
 def load():
     df = pd.read_csv('../../dataset/2021.csv').dropna(axis=0, how='any', inplace=False)
@@ -27,6 +27,7 @@ def write_header(filepath, fieldnames):
         fieldnames = fieldnames
         writer = csv.DictWriter(fs, fieldnames=fieldnames)
         writer.writeheader()
+
 
 def pmv_model(M, clo, tr, ta, vel, rh):
     """
@@ -82,7 +83,7 @@ def iteration(M, Icl, tcl_guess, tr, ta, vel):
         tcl_cal = 35.7 - 0.028 * M - Icl * fcl * (3.96 * 10 ** (-8) * para1 + para2)
 
         if abs(tcl_cal - tcl_guess) > 0.00015:
-            tcl_guess = 0.5*(tcl_guess+tcl_cal)
+            tcl_guess = 0.5 * (tcl_guess + tcl_cal)
         else:
             break
 
@@ -93,13 +94,17 @@ def iteration(M, Icl, tcl_guess, tr, ta, vel):
     # print(tcl_cal)
     return tcl_cal, hc
 
+
 if __name__ == '__main__':
     filepath = '../../dataset/synthetic.csv'
 
+    if os.access(filepath, os.F_OK):
+        os.remove(filepath)
+
     feature = ['no', 'gender', 'age', 'height', 'weight', 'bmi', 'griffith',
-                  'sensitivity', 'preference', 'environment',
-                  'thermal sensation',
-                  'season', 'date', 'time', 'room', 'ta', 'hr']
+               'sensitivity', 'preference', 'environment',
+               'thermal sensation',
+               'season', 'date', 'time', 'room', 'ta', 'hr']
 
     fieldnames = ['no', 'gender', 'age', 'height', 'weight', 'bmi', 'griffith',
                   'sensitivity', 'preference', 'environment',
@@ -120,30 +125,42 @@ if __name__ == '__main__':
             '14:30:00', '15:00:00', '15:30:00', '16:00:00', '16:30:00', '17:00:00', '17:30:00']
 
     winter_env = {}
+    total_ta = 0
+    num = 0
     for d in wd:
         ta_rh = []
         for t in time:
             temp = winter.loc[(winter['date'] == d) & (winter['time'] == t)][['ta', 'hr']]
             temp = temp.values.tolist()[0]
+            total_ta += temp[0]
+            num += 1
             ta_rh.append(temp)
         winter_env.update({d: ta_rh})
+    print(winter_env)
+    print(f'冬季温度平均值为{total_ta / num}')
 
     summer_env = {}
+    total_ta = 0
+    num = 0
     for d in sd:
         ta_rh = []
         for t in time:
             temp = summer.loc[(summer['date'] == d) & (summer['time'] == t)][['ta', 'hr']]
             temp = temp.values.tolist()[0]
+            total_ta += temp[0]
+            num += 1
             ta_rh.append(temp)
         summer_env.update({d: ta_rh})
-    print(winter_env)
+    print(f'夏季温度平均值为{total_ta / num}')
     print(summer_env)
-    no = np.array(df['no'].sort_values().unique())
 
+
+    no = np.array(df['no'].sort_values().unique())
     m = 1.2
-    clo_w = 0.8
+    clo_w = 0.95
     clo_s = 0.5
-    vel = 1.5 * round(random.random(), 1)
+    vel = 0.8 * round(random.random(), 1)
+    vel_w = 1.5 * round(random.random(), 1)
     final = pd.DataFrame(columns=feature)
     for n in no:
         all_data = df.loc[df['no'] == n]
@@ -152,20 +169,21 @@ if __name__ == '__main__':
         create_data = []
         create_date = []
         shuffle(wd)
-        if len(date) < 4:
+        if len(date) < 3:
             for d in wd:
                 if d not in date:
                     create_date.append(d)
-                    if len(create_date) + len(date) >= 4:
+                    if len(create_date) + len(date) >= 3:
                         break
             create_date.sort()
 
             for cd in create_date:
                 env = winter_env.get(cd)
                 for i in range(0, len(env)):
-                    ta = env[i][0] + round((2-(-2)) * np.random.random() + (-2), 1)
+                    # + round((2 - (-2)) * np.random.random() + (-2), 1)
+                    ta = env[i][0] + round(random.uniform(-5.7, 2.7), 2)
                     rh = env[i][1]
-                    pmv = pmv_model(M=m * 58.15, clo=clo_w, tr=ta + 0.1, ta=ta, vel=vel, rh=rh)
+                    pmv = pmv_model(M=m * 58.15, clo=clo_w, tr=ta + 0.1, ta=ta, vel=vel_w, rh=rh)
                     temp_data = all_data.iloc[0: 1, 0:10].values.flatten().tolist()
                     temp_data.append(round(pmv, 1))
                     temp_data.append('winter')
@@ -188,11 +206,11 @@ if __name__ == '__main__':
         create_data = []
         create_date = []
         shuffle(sd)
-        if len(date) < 2:
+        if len(date) < 3:
             for d in sd:
                 if d not in date:
                     create_date.append(d)
-                    if len(create_date) + len(date) >= 2:
+                    if len(create_date) + len(date) >= 3:
                         break
             create_date.sort()
             print(create_date)
@@ -200,7 +218,7 @@ if __name__ == '__main__':
             for cd in create_date:
                 env = summer_env.get(cd)
                 for i in range(0, len(env)):
-                    ta = env[i][0]
+                    ta = env[i][0] + round(random.uniform(-5, 2.3), 2)
                     rh = env[i][1]
                     pmv = pmv_model(M=m * 58.15, clo=clo_s, tr=ta + 0.1, ta=ta, vel=vel, rh=rh)
                     temp_data = all_data.iloc[0: 1, 0:10].values.flatten().tolist()

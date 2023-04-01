@@ -5,6 +5,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib.font_manager import FontManager
+import matplotlib.ticker as ticker
+
 
 
 def font():
@@ -78,18 +80,10 @@ def hist(season, data):
     hot_ta = np.array(hot_ta).flatten()
     com_ta = np.array(com_ta).flatten()
     cool_ta = np.array(cool_ta).flatten()
-    print(len(hot_ta))
-    print(len(com_ta))
-    print(len(cool_ta))
+
     data = [hot_ta, com_ta, cool_ta]
-    dic = {
-        "热不适": hot_ta,
-        "舒适": com_ta,
-        "冷不适": cool_ta
-    }
-    # data = pd.DataFrame(dict([(k, pd.Series(v)) for k, v in dic.items()]))
     plt.hist(x=data,  # 绘图数据
-             bins=20,  # 指定直方图的条形数为20个
+             bins=20, # 指定直方图的条形数为20个
              edgecolor='w',  # 指定直方图的边框色
              color=['r', 'g', 'b'],  # 指定直方图的填充色
              label=['热不适', '舒适', '冷不适'],  # 为直方图呈现图例
@@ -164,12 +158,70 @@ def load(year):
     data.loc[(data[y_feature] < -0.5), y_feature] = 0
     return data
 
+
+def stat(data):
+    max = math.ceil(data.max())
+    min = math.floor(data.min())
+    bins = range(min, max)
+    res = pd.cut(data['ta'], bins=bins)
+    dic = res.value_counts(normalize=False, ascending=False, bins=None, dropna=True).to_dict()
+    dict = {}
+    sum = 0
+    for k, v in dic.items():
+        dict.update({k.left: v})
+        sum += v
+    x = []
+    y = []
+    for k, v in sorted(dict.items(), key=lambda x:x[0]):
+        x.append(k)
+        y.append(v/sum)
+    return x, y
+
+
+def plt_bar(x, y, color, width):
+    print(x)
+    print(y)
+
+    plt.bar(x, y, width=width, color=color, align='edge', edgecolor='white')
+    ax = plt.axes()
+    ax.xaxis.set_major_locator(ticker.MultipleLocator(1))
+    ax.yaxis.set_major_locator(ticker.MultipleLocator(0.05))
+
+    plt.grid(True, axis='y', ls='dashed')
+
+    plt.show()
+
+
+def count(season, data):
+    print(f'2021年{season}数据分布情况')
+    hot_ta, hot_rh, com_ta, com_rh, cool_ta, cool_rh = split(data)
+    print(f'2021年{season}热不适：{len(hot_ta)}、舒适：{len(com_ta)}、冷不适：{len(cool_ta)}')
+
+    print(f'热不适温度区间为{hot_ta.min()[0], hot_ta.max()[0]}')
+    print(f'舒适温度区间为{com_ta.min()[0], com_ta.max()[0]}')
+    print(f'冷不适温度区间为{round(cool_ta.min()[0], 2), cool_ta.max()[0]}')
+
+    print()
+    x1, y1 = stat(hot_ta)
+    x2, y2 = stat(com_ta)
+
+    x3, y3 = stat(com_ta)
+    max_width = max(np.diff(x1).min(), np.diff(x2).min(), np.diff(x2).min())
+
+    plt_bar(x1, y1, color='r', width=max_width)
+    plt_bar(x2, y2, color='g', width=max_width)
+    plt_bar(x3, y3, color='b', width=max_width)
+
+
+
+
 if __name__ == '__main__':
     # font()
     # 未经过序列化数据
     df = pd.read_csv('../../DataSet/synthetic.csv', encoding='gbk').dropna(axis=0, how='any', inplace=False)
+    # df = pd.read_csv('../../DataSet/2021.csv', encoding='gbk').dropna(axis=0, how='any', inplace=False)
 
-    # print(env.shape)
+    print(f'数据总量{df.shape[0]}')
     y_feature = 'thermal sensation'
     df.loc[(df[y_feature] > 0.5), y_feature] = 2
     df.loc[((-0.5 <= df[y_feature]) & (df[y_feature] <= 0.5)), y_feature] = 1
@@ -177,13 +229,15 @@ if __name__ == '__main__':
 
     winter = df.loc[(df['season'] == 'winter')].reset_index(drop=True)
     summer = df.loc[(df['season'] == 'summer')].reset_index(drop=True)
-    print(winter.shape[0])
-    print(summer.shape[0])
-    distribution('2021夏季数据分布图', summer)
-    distribution('2021冬季数据分布图', winter)
-    # distribution('2021数据分布图', df)
-    hist('夏季', summer)
-    hist('冬季', winter)
+    # print(f'冬季数据数量{winter.shape[0]}')
+    # print(f'夏季数据数量{summer.shape[0]}')
+    # distribution('2021夏季数据分布图', summer)
+    # distribution('2021冬季数据分布图', winter)
+    # # distribution('2021数据分布图', df)
+    # hist('夏季', summer)
+    # hist('冬季', winter)
+    count('夏季', summer)
+    count('冬季', winter)
     # filter('2021', df)
 
 

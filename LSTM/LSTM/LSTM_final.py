@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import pandas as pd
 import tensorflow as tf
 import os
 import numpy as np
@@ -11,15 +12,34 @@ os.environ['CUDA_VISIBLE_DEVICES'] = "1"
 
 
 def data_loader():
-    env = np.load('../dataset/synthetic/env.npy', allow_pickle=True).astype(float)  # ta hr va
+    # preference sensitivity environment
+    env1 = np.load('../dataset/synthetic/env.npy', allow_pickle=True).astype(float)  # ta hr va
+    env2 = np.load('../dataset/2021/env.npy', allow_pickle=True).astype(float)  # ta hr va
+    env = np.concatenate([env1, env2], axis=0)
     print(len(env))
-    season = np.load('../dataset/synthetic/season.npy', allow_pickle=True).astype(int)  # season
-    date = np.load('../dataset/synthetic/date.npy', allow_pickle=True)  # date
-    body = np.load('../dataset/synthetic/body.npy', allow_pickle=True).astype(float)  # age height weight bmi
+
+    season1 = np.load('../dataset/synthetic/season.npy', allow_pickle=True).astype(int)  # season
+    season2 = np.load('../dataset/2021/season.npy', allow_pickle=True).astype(int)  # season
+    season = np.concatenate([season1, season2], axis=0)
+
+    date1 = np.load('../dataset/synthetic/date.npy', allow_pickle=True)  # date
+    date2 = np.load('../dataset/2021/date.npy', allow_pickle=True)
+    date = np.concatenate([date1, date2], axis=0)
+
+    body1 = np.load('../dataset/synthetic/body.npy', allow_pickle=True).astype(float)  # age height weight bmi
+    body2 = np.load('../dataset/2021/body.npy', allow_pickle=True).astype(float)  # age height weight bmi
+    body = np.concatenate([body1, body2], axis=0)
+
     # griffith, gender, sensitivity, preference, environment
-    gender = np.load('../dataset/synthetic/gender.npy', allow_pickle=True)
-    gender = gender[:, 0:2]
-    label = np.load('../dataset/synthetic/label.npy', allow_pickle=True).astype(int)  # pmv
+    gender1 = np.load('../dataset/synthetic/gender.npy', allow_pickle=True)
+    gender1 = gender1[:, 0:2]
+    gender2 = np.load('../dataset/2021/gender.npy', allow_pickle=True)
+    gender2 = gender2[:, 0:2]
+    gender = np.concatenate([gender1, gender2], axis=0)
+
+    label1 = np.load('../dataset/synthetic/label.npy', allow_pickle=True).astype(int)  # pmv
+    label2 = np.load('../dataset/2021/label.npy', allow_pickle=True).astype(int)
+    label = np.concatenate([label1, label2], axis=0)
 
     # normalization: [ta hr va age height weight bmi]
     x = np.concatenate((env, body), axis=1)
@@ -235,9 +255,9 @@ if __name__ == '__main__':
 
     test_size, val_size = 0.2, 0.1
 
-    num_epochs, batch_size, learning_rate = 128, 32, 0.008
+    num_epochs, batch_size, learning_rate = 128, 64, 0.008
 
-    alpha, beta = 0.5, 2
+    alpha, beta = 0.3, 0.5
 
     x_train, y_train, x_test, y_test = data_loader()
 
