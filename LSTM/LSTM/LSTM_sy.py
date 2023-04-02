@@ -152,7 +152,7 @@ def R_loss(y_true, input):
             else:
                 y_exp.append(2)
         else:
-            if 25 >= ta[i] >= 22:
+            if 25.5 >= ta[i] >= 22:
                 y_exp.append(1)
             elif ta[i] < 22:
                 y_exp.append(0)
@@ -237,7 +237,7 @@ if __name__ == '__main__':
 
     num_epochs, batch_size, learning_rate = 128, 32, 0.008
 
-    alpha, beta = 0.5, 2
+    alpha, beta = 0, 0
 
     x_train, y_train, x_test, y_test = data_loader()
 

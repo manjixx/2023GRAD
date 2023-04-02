@@ -8,7 +8,6 @@ from matplotlib.font_manager import FontManager
 import matplotlib.ticker as ticker
 
 
-
 def font():
     mpl_fonts = set(f.name for f in FontManager().ttflist)
     print('all font list get from matplotlib.font_manager:')
@@ -51,9 +50,17 @@ def hist(season, data):
     sns.set(style="white", palette='deep', font='Microsoft YaHei', font_scale=0.8)
 
     red = sns.color_palette("Set1")[0]
-
+    bins = math.ceil(hot_ta.max()) - math.floor(hot_ta.min()) + 5
     # 绘制直方图
-    sns.distplot(hot_ta, hist=True, hist_kws={'color': red}, kde_kws={'color': 'darkred', "shade": True, 'linestyle': '-'},
+    sns.distplot(hot_ta,
+                 bins=bins,
+                 hist=True,
+                 hist_kws={'color': red},
+                 kde_kws={
+                     'color': 'darkred',
+                     "shade": True,
+                     'linestyle': '--'
+                 },
                  norm_hist=True)
     plt.xlabel(u"温度(℃)")
     # max = math.ceil(hot_ta.max())
@@ -61,29 +68,53 @@ def hist(season, data):
     # x = np.arange(min, max, 1)
     # plt.xticks(x, rotation=45)
     plt.ylabel(u"数据比例")
-    plt.title(u'2021年'+season+'热不适温度分布')
+    # plt.title(u'2021年'+season+'热不适温度分布')
     plt.show()
 
-    sns.distplot(com_ta, hist=True, hist_kws={'color': 'green'}, kde_kws={'color': 'darkgreen', "shade": True, 'linestyle': '-'},
+    bins = math.ceil(com_ta.max()) - math.floor(com_ta.min()) + 5
+    sns.distplot(com_ta,
+                 bins=bins,
+                 hist=True,
+                 hist_kws={'color': 'green'},
+                 kde_kws={
+                     'color': 'darkgreen',
+                     "shade": True,
+                     'linestyle': '--'
+                 },
                  norm_hist=True)
     plt.xlabel(u"温度(℃)")
     plt.ylabel(u"数据比例")
-    plt.title(f'2021年{season}舒适温度分布')
+    # plt.title(f'2021年{season}舒适温度分布')
     plt.show()
 
-    sns.distplot(com_ta, hist=True, hist_kws={'color': 'dodgerblue'}, kde_kws={'color': 'darkblue', "shade": True, 'linestyle': '--'},
+    bins = math.ceil(cool_ta.max()) - math.floor(cool_ta.min()) + 5
+    sns.distplot(cool_ta,
+                 bins=bins,
+                 hist=True,
+                 hist_kws={'color': 'dodgerblue'},
+                 kde_kws={
+                     'color': 'darkblue',
+                     "shade": True,
+                     'linestyle': '--'
+                 },
                  norm_hist=True)
     plt.xlabel(u"温度(℃)")
     plt.ylabel(u"数据比例")
-    plt.title(f'2021年{season}冷不适温度分布')
+    # plt.title(f'2021年{season}冷不适温度分布')
     plt.show()
+
+    bins = max(math.ceil(hot_ta.max()) - math.floor(hot_ta.min()),
+               math.ceil(com_ta.max()) - math.floor(com_ta.min()),
+               math.ceil(cool_ta.max()) - math.floor(cool_ta.min())
+              )
+
     hot_ta = np.array(hot_ta).flatten()
     com_ta = np.array(com_ta).flatten()
     cool_ta = np.array(cool_ta).flatten()
 
     data = [hot_ta, com_ta, cool_ta]
     plt.hist(x=data,  # 绘图数据
-             bins=20, # 指定直方图的条形数为20个
+             bins=bins,  # 指定直方图的条形数为20个
              edgecolor='w',  # 指定直方图的边框色
              color=['r', 'g', 'b'],  # 指定直方图的填充色
              label=['热不适', '舒适', '冷不适'],  # 为直方图呈现图例
@@ -96,7 +127,7 @@ def hist(season, data):
     # 显示图形
     plt.xlabel(u"温度(℃)")
     plt.ylabel(u"数据比例")
-    plt.title(f'2021年{season}所有数据温度分布')
+    # plt.title(f'2021年{season}所有数据温度分布')
     plt.show()
 
 
@@ -195,24 +226,24 @@ def plt_bar(x, y, color, width):
 def count(season, data):
     print(f'2021年{season}数据分布情况')
     hot_ta, hot_rh, com_ta, com_rh, cool_ta, cool_rh = split(data)
-    print(f'2021年{season}热不适：{len(hot_ta)}、舒适：{len(com_ta)}、冷不适：{len(cool_ta)}')
+    print(f'2021年{season}热不适：{len(hot_ta)}, 占比为{len(hot_ta)/len(data)}\n'
+          f'舒适：{len(com_ta)}, 占比{len(com_ta)/len(data)}\n'
+          f'冷不适：{len(cool_ta)}，占比{len(cool_ta)/len(data)}')
 
     print(f'热不适温度区间为{hot_ta.min()[0], hot_ta.max()[0]}')
     print(f'舒适温度区间为{com_ta.min()[0], com_ta.max()[0]}')
     print(f'冷不适温度区间为{round(cool_ta.min()[0], 2), cool_ta.max()[0]}')
 
-    print()
     x1, y1 = stat(hot_ta)
     x2, y2 = stat(com_ta)
-
-    x3, y3 = stat(com_ta)
-    max_width = max(np.diff(x1).min(), np.diff(x2).min(), np.diff(x2).min())
-
+    x3, y3 = stat(cool_ta)
+    max_width = max(np.diff(x1).min(), np.diff(x2).min(), np.diff(x3).min())
+    print('热不适温度范围与各个温度占比为：')
     plt_bar(x1, y1, color='r', width=max_width)
+    print('舒适温度范围与各个温度占比为：')
     plt_bar(x2, y2, color='g', width=max_width)
+    print('冷不适温度范围与各个温度占比为：')
     plt_bar(x3, y3, color='b', width=max_width)
-
-
 
 
 if __name__ == '__main__':
@@ -229,15 +260,14 @@ if __name__ == '__main__':
 
     winter = df.loc[(df['season'] == 'winter')].reset_index(drop=True)
     summer = df.loc[(df['season'] == 'summer')].reset_index(drop=True)
-    # print(f'冬季数据数量{winter.shape[0]}')
-    # print(f'夏季数据数量{summer.shape[0]}')
+    print(f'冬季数据数量{winter.shape[0]}')
+    print(f'夏季数据数量{summer.shape[0]}')
     # distribution('2021夏季数据分布图', summer)
-    # distribution('2021冬季数据分布图', winter)
-    # # distribution('2021数据分布图', df)
+    distribution('2021冬季数据分布图', winter)
+    # distribution('2021数据分布图', df)
     # hist('夏季', summer)
-    # hist('冬季', winter)
-    count('夏季', summer)
+    hist('冬季', winter)
+    # count('夏季', summer)
     count('冬季', winter)
-    # filter('2021', df)
 
 
