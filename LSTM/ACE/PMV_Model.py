@@ -114,14 +114,15 @@ def pmv(data, target):
             target[i] = 0
         else:
             target[i] = 1
-    accuracy = accuracy_score(pmv_pred_level, target)
-    print(f"pmv模型类别准确率为：{accuracy}")
 
-    precision = precision_score(pmv_pred_level, target, average='macro')
-    print(f"pmv模型精确率为：{precision}")
+    print('准确率：' + str(accuracy_score(pmv_pred_level, target)))
+    print('精确率 macro：' + str(precision_score(pmv_pred_level, target, average='macro')))
+    print('精确率 micro：' + str(precision_score(pmv_pred_level, target, average='micro')))
+    print('精确率 weighted：' + str(precision_score(pmv_pred_level, target, average='weighted')))
+    print('Recall macro：' + str(recall_score(pmv_pred_level, target, average='macro')))
+    print('Recall micro：' + str(recall_score(pmv_pred_level, target, average='micro')))
+    print('Recall weighted：' + str(recall_score(pmv_pred_level, target, average='weighted')))
+    print('F1-score macro：' + str(f1_score(pmv_pred_level, target, average='macro')))
+    print('F1-score micro：' + str(f1_score(pmv_pred_level, target, average='micro')))
+    print('F1-score weighted：' + str(f1_score(pmv_pred_level, target, average='weighted')))
 
-    recall = recall_score(pmv_pred_level, target, average='macro')
-    print(f"pmv模型精召回率为：{recall}")
-
-    f1 = f1_score(pmv_pred_level, target, average='macro')
-    print(f"pmv模型精F1为：{f1}")

@@ -45,51 +45,70 @@ def dataloader():
 if __name__ == '__main__':
     train_feature, test_feature, train_label, test_label = dataloader()
     print('*********soft svm*************')
-    model = SVC(kernel='linear', decision_function_shape='ovr', C=0.1).fit(train_feature, train_label)
+    model = SVC(kernel='linear', decision_function_shape='ovo', C=1).fit(train_feature, train_label)
     model.fit(train_feature, train_label)
     y_pred = model.predict(test_feature)
     print('准确率：' + str(accuracy_score(y_pred, test_label)))
-    print('精确率：' + str(accuracy_score(y_pred, test_label)))
-    print('recall：' + str(accuracy_score(y_pred, test_label)))
-    print('f1：' + str(accuracy_score(y_pred, test_label)))
+    print('精确率 macro：' + str(precision_score(y_pred, test_label, average='macro')))
+    print('精确率 micro：' + str(precision_score(y_pred, test_label, average='micro')))
+    print('精确率 weighted：' + str(precision_score(y_pred, test_label, average='weighted')))
+    print('Recall macro：' + str(recall_score(y_pred, test_label, average='macro')))
+    print('Recall micro：' + str(recall_score(y_pred, test_label, average='micro')))
+    print('Recall weighted：' + str(recall_score(y_pred, test_label, average='weighted')))
+    print('F1-score macro：' + str(f1_score(y_pred, test_label, average='macro')))
+    print('F1-score micro：' + str(f1_score(y_pred, test_label, average='micro')))
+    print('F1-score weighted：' + str(f1_score(y_pred, test_label, average='weighted')))
 
     print('*********knn manhattan*************')
 
     model = KNeighborsClassifier(
-        n_neighbors=5,
+        n_neighbors=9,
         weights='uniform',
         algorithm='auto',
         leaf_size=30,
-        p=1,
+        p=2,
         n_jobs=None
     )
     model.fit(train_feature, train_label)
     y_pred = model.predict(test_feature)
     print('准确率：' + str(accuracy_score(y_pred, test_label)))
-    print('精确率：' + str(accuracy_score(y_pred, test_label)))
-    print('recall：' + str(accuracy_score(y_pred, test_label)))
-    print('f1：' + str(accuracy_score(y_pred, test_label)))
+    print('精确率 macro：' + str(precision_score(y_pred, test_label, average='macro')))
+    print('精确率 micro：' + str(precision_score(y_pred, test_label, average='micro')))
+    print('精确率 weighted：' + str(precision_score(y_pred, test_label, average='weighted')))
+    print('Recall macro：' + str(recall_score(y_pred, test_label, average='macro')))
+    print('Recall micro：' + str(recall_score(y_pred, test_label, average='micro')))
+    print('Recall weighted：' + str(recall_score(y_pred, test_label, average='weighted')))
+    print('F1-score macro：' + str(f1_score(y_pred, test_label, average='macro')))
+    print('F1-score micro：' + str(f1_score(y_pred, test_label, average='micro')))
+    print('F1-score weighted：' + str(f1_score(y_pred, test_label, average='weighted')))
 
     print('*********Random-Forest*************')
 
     classifier = RandomForestClassifier(
-        max_depth=2,
-        random_state=0
+        max_depth=5,
+        random_state=2019,
+        n_estimators=30
     )
 
     classifier.fit(train_feature, train_label)
     y_pred = classifier.predict(test_feature)
     print('准确率：' + str(accuracy_score(y_pred, test_label)))
-    print('精确率：' + str(accuracy_score(y_pred, test_label)))
-    print('recall：' + str(accuracy_score(y_pred, test_label)))
-    print('f1：' + str(accuracy_score(y_pred, test_label)))
+    print('精确率 macro：' + str(precision_score(y_pred, test_label, average='macro')))
+    print('精确率 micro：' + str(precision_score(y_pred, test_label, average='micro')))
+    print('精确率 weighted：' + str(precision_score(y_pred, test_label, average='weighted')))
+    print('Recall macro：' + str(recall_score(y_pred, test_label, average='macro')))
+    print('Recall micro：' + str(recall_score(y_pred, test_label, average='micro')))
+    print('Recall weighted：' + str(recall_score(y_pred, test_label, average='weighted')))
+    print('F1-score macro：' + str(f1_score(y_pred, test_label, average='macro')))
+    print('F1-score micro：' + str(f1_score(y_pred, test_label, average='micro')))
+    print('F1-score weighted：' + str(f1_score(y_pred, test_label, average='weighted')))
 
     print('*********Xgboost*************')
 
     classifier = LGBMClassifier(
-        learning_rate=0.0075,
-        max_depth=7,
-        n_estimators=2048,
+        learning_rate=0.008,
+        max_depth=5,
+        n_estimators=90,
         num_leaves=63,
         random_state=2019,
         n_jobs=-1,
@@ -101,6 +120,12 @@ if __name__ == '__main__':
     classifier.fit(train_feature, train_label)
     y_pred = classifier.predict(test_feature)
     print('准确率：' + str(accuracy_score(y_pred, test_label)))
-    print('精确率：' + str(accuracy_score(y_pred, test_label)))
-    print('recall：' + str(accuracy_score(y_pred, test_label)))
-    print('f1：' + str(accuracy_score(y_pred, test_label)))
+    print('精确率 macro：' + str(precision_score(y_pred, test_label, average='macro')))
+    print('精确率 micro：' + str(precision_score(y_pred, test_label, average='micro')))
+    print('精确率 weighted：' + str(precision_score(y_pred, test_label, average='weighted')))
+    print('Recall macro：' + str(recall_score(y_pred, test_label, average='macro')))
+    print('Recall micro：' + str(recall_score(y_pred, test_label, average='micro')))
+    print('Recall weighted：' + str(recall_score(y_pred, test_label, average='weighted')))
+    print('F1-score macro：' + str(f1_score(y_pred, test_label, average='macro')))
+    print('F1-score micro：' + str(f1_score(y_pred, test_label, average='micro')))
+    print('F1-score weighted：' + str(f1_score(y_pred, test_label, average='weighted')))

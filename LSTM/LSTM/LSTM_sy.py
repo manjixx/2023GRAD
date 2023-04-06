@@ -235,9 +235,9 @@ if __name__ == '__main__':
 
     test_size, val_size = 0.2, 0.1
 
-    num_epochs, batch_size, learning_rate = 128, 32, 0.008
+    num_epochs, batch_size, learning_rate = 128, 64, 0.008
 
-    alpha, beta = 0, 0
+    alpha, beta = 0.3, 1
 
     x_train, y_train, x_test, y_test = data_loader()
 

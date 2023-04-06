@@ -11,18 +11,21 @@ os.environ['CUDA_VISIBLE_DEVICES'] = "1"
 
 
 def data_loader():
-    env = np.load('../dataset/summer/env.npy', allow_pickle=True).astype(float)  # ta hr va
-    season = np.load('../dataset/summer/season.npy', allow_pickle=True).astype(int)  # season
-    date = np.load('../dataset/summer/date.npy', allow_pickle=True)  # date
-    body = np.load('../dataset/summer/body.npy', allow_pickle=True).astype(float)  # age height weight bmi griffith
-    gender = np.load('../dataset/summer/gender.npy', allow_pickle=True).astype(int)  # gender
-    label = np.load('../dataset/summer/label.npy', allow_pickle=True).astype(int)  # pmv
+    env = np.load('../dataset/synthetic/env.npy', allow_pickle=True).astype(float)  # ta hr va
+    print(len(env))
+    season = np.load('../dataset/synthetic/season.npy', allow_pickle=True).astype(int)  # season
+    date = np.load('../dataset/synthetic/date.npy', allow_pickle=True)  # date
+    body = np.load('../dataset/synthetic/body.npy', allow_pickle=True).astype(float)  # age height weight bmi
+    # griffith, gender, sensitivity, preference, environment
+    gender = np.load('../dataset/synthetic/gender.npy', allow_pickle=True)
+    gender = gender[:, 0:2]
+    label = np.load('../dataset/synthetic/label.npy', allow_pickle=True).astype(int)  # pmv
 
-    # normalization: [ta hr va age height weight bmi griffith]
+    # normalization: [ta hr va age height weight bmi]
     x = np.concatenate((env, body), axis=1)
     x = scaler.fit_transform(x)
-    # season ta hr va age height weight bmi griffith gender pmv
-    x = np.concatenate((season, x, gender[:, None], label), axis=1)
+    # season ta hr va age height weight bmi griffith, gender pmv
+    x = np.concatenate((season, x, gender, label), axis=1)
 
     x_split = []
     y_split = []
@@ -33,7 +36,7 @@ def data_loader():
         y_hat = label[start: end, :]
         for j in range(0, 4):
             x_split.append(x_hat[j: j + 3, :])
-            y_split.append(y_hat[j + 3: j + 4, :])
+            y_split.append(y_hat[j + 2: j + 3, :])
 
     x_train, x_test, y_train, y_test = train_test_split(x_split, y_split, test_size=test_size)
 
@@ -68,8 +71,8 @@ class LSTMClassifier(tf.keras.Model):
         self.dense_PMV5 = tf.keras.layers.Dense(units=3, activation=tf.nn.leaky_relu)
 
     def call(self, inputs, training=None, mask=None):
-        # get data
-        data = inputs['feature']  # season ta hr va age height weight bmi griffith gender pmv
+        # season ta hr va age height weight bmi griffith, gender label
+        data = inputs['feature']
         body = data[0:, 0:, 4:10]
         env = data[0:, 0:, 1:4]
         Ta = data[0:, 0:, 1:2]
@@ -86,7 +89,8 @@ class LSTMClassifier(tf.keras.Model):
         Tsk = tf.abs(self.dense_Tsk2(Tsk_input))
         Psk = tf.math.log1p(Tsk)
 
-        # M, Tsk, Psk, Pa, season, ta, hr, va, age, height, weight, bmi, griffith, gender
+        # M, Tsk, Psk, Pa, season, ta,hr,va,age,height,weight,bmi,griffith,gender,sensitivity,preference,environment
+
         s_input = []
         for (m, tsk, psk, pa, e, b) in zip(M, Tsk, Psk, Pa, env, body):
             s_input.append(tf.concat([m, tsk, psk, pa, e, b], axis=1))
@@ -96,7 +100,9 @@ class LSTMClassifier(tf.keras.Model):
         s_input = self.drop(S, training=training)
         S = self.dense_S2(s_input)
 
-        # M, Tsk, Psk, Pa, S, season ta hr  va age height weight bmi griffith gender pmv
+        # M, Tsk, Psk, Pa, S, season ta hr va
+        # age height weight bmi griffith, gender, sensitivity,preference,environment,
+        # label
         lstm_input = []
         for (m, tsk, psk, pa, s, d) in zip(M, Tsk, Psk, Pa, S, data):
             lstm_input.append(tf.concat([m, tsk, psk, pa, s, d], axis=1))
@@ -114,36 +120,44 @@ class LSTMClassifier(tf.keras.Model):
         dense = self.drop(dense, training=training)
         dense = self.dense_PMV5(dense)
 
-        output = tf.nn.softmax(dense)
+        output = tf.nn.softmax(dense)[:, 2:3, :]
 
-        output = output[:, 2:3, :]
-
-        # ta hr va age height weight bmi griffith gender pmv
-        data = data[:, 2:3, 1:]
+        # season ta hr va age height weight bmi griffith, gender, sensitivity, preference, environment, label
+        data = data[:, 2:3, 0:]
 
         x = []
         for (d, o) in zip(data, output):
             x.append(tf.concat((d, o), axis=1))
-        x = tf.reshape(x, [len(data), 1, 13])
+        x = tf.reshape(x, [len(data), 1, 14])
 
         return [output, x]
 
 
 def R_loss(y_true, input):
+    # season ta hr va age height weight bmi griffith, gender, sensitivity, preference, environment, label, y_pred
     input = tf.squeeze(input, axis=1)
-    data = scaler.inverse_transform(input[:, 0:8])
-    ta = data[:, 0:1]
+    data = scaler.inverse_transform(input[:, 1:8])
+    ta = data[:, 1:2]
     # ta hr va age height weight bmi griffith gender pmv y_pred
-    y_pred = input[:, 10:]
+    y_pred = input[:, 11:]
+    season = input[:, 0:1]
     y_exp = []
     # ta 映射
     for i in range(0, len(ta)):
-        if 28 >= ta[i] >= 26:
-            y_exp.append(1)
-        elif ta[i] < 26:
-            y_exp.append(0)
+        if season[i] == 0:  # 夏季
+            if 26.5 >= ta[i] >= 24:
+                y_exp.append(1)
+            elif ta[i] < 24:
+                y_exp.append(0)
+            else:
+                y_exp.append(2)
         else:
-            y_exp.append(2)
+            if 25.5 >= ta[i] >= 22:
+                y_exp.append(1)
+            elif ta[i] < 22:
+                y_exp.append(0)
+            else:
+                y_exp.append(2)
     y_exp = tf.one_hot(y_exp, depth=3)
     total = 0
     for i in range(0, len(y_pred)):
@@ -198,7 +212,11 @@ def test():
     checkpoint.restore('save_model/model_lstm.ckpt-1').expect_partial()
     y_pred = model({'feature': x_test}, training=False)
     y_pred = tf.squeeze(y_pred[0], axis=1)
+    print(f'y_pred shape:{np.array(y_pred).shape}')
+    print(f'y_test shape:{np.array(y_test).shape}')
+
     y = tf.squeeze(y_test, axis=1)
+    print(f'y_test shape:{np.array(y).shape}')
     y_pred = np.argmax(y_pred, axis=1)
     print('准确率：' + str(accuracy_score(y_pred, y)))
     print('精确率 macro：' + str(precision_score(y_pred, y, average='macro')))
@@ -213,14 +231,13 @@ def test():
 
 
 if __name__ == '__main__':
-
     scaler = MinMaxScaler()
 
     test_size, val_size = 0.2, 0.1
 
-    num_epochs, batch_size, learning_rate = 128, 32, 0.008
+    num_epochs, batch_size, learning_rate = 128, 64, 0.008
 
-    alpha, beta = 0, 0
+    alpha, beta = 0.3, 0
 
     x_train, y_train, x_test, y_test = data_loader()
 

@@ -62,8 +62,8 @@ class Classifier_Modeling(tf.keras.Model):
         super(Classifier_Modeling, self).__init__()
         self.drop = tf.keras.layers.Dropout(rate=0.5)
 
-        self.dense_PMV1 = tf.keras.layers.Dense(units=8, activation=tf.nn.leaky_relu)
-        self.dense_PMV2 = tf.keras.layers.Dense(units=16, activation=tf.nn.leaky_relu)
+        self.dense_PMV1 = tf.keras.layers.Dense(units=16, activation=tf.nn.leaky_relu)
+        self.dense_PMV2 = tf.keras.layers.Dense(units=32, activation=tf.nn.leaky_relu)
         self.dense_PMV3 = tf.keras.layers.Dense(units=32, activation=tf.nn.leaky_relu)
         self.dense_PMV4 = tf.keras.layers.Dense(units=64, activation=tf.nn.leaky_relu)
         self.dense_PMV5 = tf.keras.layers.LSTM(units=128, activation=tf.nn.leaky_relu, return_sequences=True)
@@ -140,7 +140,7 @@ def train():
 
 def test():
     checkpoint = tf.train.Checkpoint(classifier=model)
-    checkpoint.restore('save_model/model_ann.ckpt-1').expect_partial()
+    checkpoint.restore('save_model/model_lstm.ckpt-1').expect_partial()
     y_pred = model({'feature': x_test}, training=False)
     y_pred = tf.squeeze(y_pred[0], axis=1)
     print(f'y_pred shape:{np.array(y_pred).shape}')
@@ -168,7 +168,7 @@ if __name__ == '__main__':
     test_size, val_size = 0.2, 0.1
 
     x_train, y_train, x_test, y_test = data_loader()
-    num_epochs, batch_size, learning_rate = 128, 16, 0.008
+    num_epochs, batch_size, learning_rate = 128, 64, 0.008
 
     model = Classifier_Modeling()
     train()
