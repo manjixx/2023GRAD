@@ -10,7 +10,7 @@ def deal_2018():
     df_2018 = pd.read_csv('../../dataset/2018.csv').dropna(axis=0, how='any', inplace=False)
     print(f'2018年数据共{df_2018.shape[0]}条')
     no2018 = np.array(df_2018['no'].unique())
-    print(f'2018年共计有{no2018}名成员')
+    # print(f'2018年共计有{no2018}名成员')
     return df_2018
 
 
@@ -21,7 +21,7 @@ def deal_2019_summer():
     print(f'2019年夏季共计有{no2019}名成员')
     for i in reversed(no2019):
         df_2019.loc[(df_2019['no'] == i), 'no'] = i + 6
-    print(f'2019年夏季共计有{np.array(df_2019["no"].unique())}名成员')
+    # print(f'2019年夏季共计有{np.array(df_2019["no"].unique())}名成员')
     return df_2019
 
 
@@ -32,7 +32,7 @@ def deal_2019_winter():
     print(f'2019年冬季共计有{no2019}名成员')
     for i in reversed(no2019):
         df_2019.loc[(df_2019['no'] == i), 'no'] = i + 28
-    print(f'2019年冬季共计有{np.array(df_2019["no"].unique())}名成员')
+    # print(f'2019年冬季共计有{np.array(df_2019["no"].unique())}名成员')
     return df_2019
 
 
@@ -42,7 +42,7 @@ def deal_2021():
     no2021 = np.array(df_2021['no'].unique())
     for i in reversed(no2021):
         df_2021.loc[(df_2021['no'] == i), 'no'] = i + 37
-    print(f'2019年共计有{np.array(df_2021["no"].unique())}名成员')
+    # print(f'2019年共计有{np.array(df_2021["no"].unique())}名成员')
     return df_2021
 
 
@@ -75,9 +75,8 @@ def calculate(df):
 
 
 def preprocess(df):
-    no2021 = np.array(df['no'].unique())
-
-    for i in no2021:
+    df = df.sort_values(by=['no'], axis=0, ascending=True, inplace=False).reset_index(drop=True)
+    for i in np.array(df['no'].unique()):
         data = df.loc[(df['no'] == i)]
         g = np.array(data['griffith'].unique())[0]
         l = data.shape[0]
@@ -87,10 +86,12 @@ def preprocess(df):
             df = df.drop(df.index[(df.no == i)])
     k = 0
     for i in np.array(df['no'].unique()):
+        print(i)
         k += 1
         df.loc[(df['no'] == i), 'no'] = k
-        data = df.loc[(df['no'] == k)].reset_index(drop=True)
-        l = data.shape[0]
+
+        # data = df.loc[(df['no'] == k)].reset_index(drop=True)
+        # l = data.shape[0]
         # print(f'{k}号实验人员共有{l}条数据')
 
     for i in np.array(df['no'].unique()):
@@ -152,7 +153,7 @@ if __name__ == '__main__':
     df = pd.concat([df1, df2, df3, df4], axis=0).reset_index(drop=True)
     df = calculate(df)
     df = preprocess(df)
-    print(df)
+    print(np.array(df['no'].unique()))
 
     df.to_csv('./data/dataset.csv')
 

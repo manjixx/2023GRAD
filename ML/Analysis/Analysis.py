@@ -64,6 +64,7 @@ if __name__ == '__main__':
     df = pd.read_csv('../dataset/data/dataset.csv').dropna(axis=0, how='any', inplace=False)
     print(df)
     no = df['no'].unique()
+    print(no)
 
     bmi = []
     griffith = []
@@ -72,10 +73,10 @@ if __name__ == '__main__':
         griffith.append((data['griffith'].unique()[0]))
         bmi.append((data['bmi'].unique()[0]))
 
-    print(bmi)
+    print(len(bmi))
     hist(u'BMI', 0.5, np.array(bmi))
-    print(griffith)
-    hist(u'热敏感度', 0.3, np.array(griffith))
+    print(len(griffith))
+    hist(u'热敏感度', 0.2, np.array(griffith))
 
 
 
