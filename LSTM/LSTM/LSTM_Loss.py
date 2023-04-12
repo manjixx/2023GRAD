@@ -20,6 +20,7 @@ def data_loader():
     gender = np.load('../dataset/synthetic/gender.npy', allow_pickle=True)
     gender = gender[:, 0:2]
     label = np.load('../dataset/synthetic/label.npy', allow_pickle=True).astype(int)  # pmv
+    print(label.shape)
 
     # normalization: [ta hr va age height weight bmi]
     x = np.concatenate((env, body), axis=1)

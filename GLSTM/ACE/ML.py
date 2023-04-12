@@ -16,34 +16,55 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from sklearn.preprocessing import MinMaxScaler
+import tensorflow as tf
 
-def dataloader():
-    filename = 'synthetic'
-    env = np.load(f'../dataset/{filename}/env.npy', allow_pickle=True).astype(float)  # ta hr va
-    season = np.load(f'../dataset/{filename}/season.npy', allow_pickle=True).astype(int)  # season
-    date = np.load(f'../dataset/{filename}/date.npy', allow_pickle=True)  # date
-    body = np.load(f'../dataset/{filename}/body.npy', allow_pickle=True).astype(float)  # age height weight bmi
-    # griffith, gender, sensitivity, preference, environment
-    gender = np.load(f'../dataset/{filename}/gender.npy', allow_pickle=True)
-    # gender = gender[:, 0:2]
-    y = np.load(f'../dataset/{filename}/label.npy', allow_pickle=True).astype(int)  # pmv
 
-    # normalization: [ta hr va age height weight bmi]
-    x = np.concatenate((env, body), axis=1)
-    x = MinMaxScaler().fit_transform(x)
-    # season ta hr va age height weight bmi griffith, gender pmv
-    x = np.concatenate((season, gender, x), axis=1)
+def data_loader():
+    filepath = 'Synthetic'
 
-    train_feature, test_feature, train_label, test_label = train_test_split(x, y, test_size=0.2)
-    print(f'train_feature shape: {len(train_feature)} * {len(train_feature[0])}')
-    print(f'test_feature shape: {len(test_feature)} * {len(test_feature[0])}')
+    """
+    'male', 'female','young', 'old','short', 'medium', 'tall','thin', 'normal', 'fat',
+    'bmi_l', 'bmi_n', 'bmi_h',  'grf_l', 'grf_n', 'grf_h','sen_l', 'sen_n', 'sen_h',
+    'pre_l', 'pre_n', 'pre_h', 'env_l', 'env_n', 'env_h'
+    """
+    person = np.load('../Dataset/npy/' + filepath + '/person.npy', allow_pickle=True).astype(float)
+    print(len(person))
+    # 'date', 'time', 'season', 'va', 'ta', 'hr'
+    env = np.load('../Dataset/npy/' + filepath + '/env.npy', allow_pickle=True)
+    ta = env[:, 3:6]
+    season = env[:, 2:3]
 
-    return np.array(train_feature), np.array(test_feature), np.array(train_label), np.array(
-        test_label)
+    # ta_diff1, ta_diff2
+    diff = np.load('../Dataset/npy/' + filepath + '/diff.npy', allow_pickle=True).astype(float)
+    # 'age_avg', 'height_avg', 'weight_avg', 'bmi_avg'
+    avg = np.load('../Dataset/npy/' + filepath + '/avg.npy', allow_pickle=True).astype(float)
+    # griffith_avg
+    griffith = np.load('../Dataset/npy/' + filepath + '/grf.npy', allow_pickle=True).astype(float)
+    # count
+    count = np.load('../Dataset/npy/' + filepath + '/count.npy', allow_pickle=True)
+    # label
+    y = np.load('../Dataset/npy/' + filepath + '/tsv.npy', allow_pickle=True).astype(float)[:, None]
+
+    # normalization: ['va', 'ta', 'hr', 'height_avg', 'weight_avg', 'bmi_avg'] env, avg
+    normalization = np.concatenate((ta, avg), axis=1)
+    normalization = MinMaxScaler().fit_transform(X=normalization)
+
+    # count, person, griffith_avg, season, diff, va, ta, hr, age_avg, height_avg, weight_avg, bmi_avg
+
+    x = np.concatenate((count[:, None], person, griffith[:, None], season, diff, normalization), axis=1)
+
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
+
+    print(f'x_train shape: {np.array(x_train).shape}')
+    print(f'y_train shape: {np.array(y_train).shape}')
+    print(f'x_test shape: {np.array(x_test).shape}')
+    print(f'y_test shape: {np.array(y_test).shape}')
+
+    return np.array(x_train), np.array(x_test), np.array(y_train), np.array(y_test)
 
 
 if __name__ == '__main__':
-    train_feature, test_feature, train_label, test_label = dataloader()
+    train_feature, test_feature, train_label, test_label = data_loader()
     print('*********soft svm*************')
     model = SVC(kernel='linear', decision_function_shape='ovo', C=1).fit(train_feature, train_label)
     model.fit(train_feature, train_label)

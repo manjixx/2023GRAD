@@ -6,6 +6,12 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib.font_manager import FontManager
 import matplotlib.ticker as ticker
+import warnings
+warnings.filterwarnings('ignore')
+
+plt.rcParams['font.sans-serif'] = ['Microsoft YaHei']
+plt.rcParams['axes.unicode_minus'] = False
+sns.set(style="white", palette='deep', font='Microsoft YaHei', font_scale=0.8)
 
 
 def font():
@@ -45,9 +51,6 @@ def distribution(title, data):
 def hist(season, data):
     hot_ta, hot_rh, com_ta, com_rh, cool_ta, cool_rh = split(data)
     # # 绘图风格
-    plt.rcParams['font.sans-serif'] = ['Microsoft YaHei']
-    plt.rcParams['axes.unicode_minus'] = False
-    sns.set(style="white", palette='deep', font='Microsoft YaHei', font_scale=0.8)
 
     red = sns.color_palette("Set1")[0]
     bins = math.ceil(hot_ta.max()) - math.floor(hot_ta.min()) + 5
@@ -148,47 +151,6 @@ def filter(title, df):
     for key, value in len.items():
         print('%s:%s' % (key, value))
 
-def load(year):
-    if year == '2018':    # 数据清洗
-        df = pd.read_csv('../../dataset/2018.csv').dropna(axis=0, how='any', inplace=False)
-        data = df[(df.time != '8:50:00') & (df.time != '14:20:00') & (df.time != '18:00:00')]
-        data = data.drop(data.index[(data.no == 3) & (data.date == '2018/7/16')])
-        data = data.drop(data.index[(data.no == 6) & (data.date == '2018/7/16')])
-        data.loc[(data['time'] == '9:00:00'), 'time'] = '09:00:00'
-        data.loc[(data['time'] == '9:30:00'), 'time'] = '09:30:00'
-    elif year == '2019_summer':
-        df = pd.read_csv('../../dataset/2019_summer_clean.csv').dropna(axis=0, how='any', inplace=False)
-        data = df.drop(df.index[(df.time == '12:30:00') | (df.time == '13:00:00') |
-                                (df.time == '13:30:00') | (df.time == '14:00:00') |
-                                (df.time == '18:00:00')])
-        data = data.drop(data.index[(data.no == 9) & (data.date == '2019/7/29')])
-        data.loc[(data['time'] == '9:00:00'), 'time'] = '09:00:00'
-        data.loc[(data['time'] == '9:30:00'), 'time'] = '09:30:00'
-        data = data.sort_values(by=['no', 'date', 'time'], axis=0, ascending=True, inplace=False)
-    elif year == '2019_winter':
-        df = pd.read_csv('../../dataset/2019_winter.csv').dropna(axis=0, how='any', inplace=False)
-        data = df.drop(df.index[(df.time == '8:40:00') | (df.time == '8:50:00') | (df.time == '14:10:00')])
-        data.loc[(data['time'] == '9:00:00'), 'time'] = '09:00:00'
-        data.loc[(data['time'] == '9:30:00'), 'time'] = '09:30:00'
-        data.loc[(data['date'] == '2019/1/9'), 'date'] = '2019/1/09'
-        data = data.sort_values(by=['no', 'date', 'time'], axis=0, ascending=True, inplace=False)
-    else:
-        df = pd.read_csv('../../dataset/2021.csv').dropna(axis=0, how='any', inplace=False)
-        df.loc[(df['time'] == '9:00:00'), 'time'] = '09:00:00'
-        df.loc[(df['time'] == '9:30:00'), 'time'] = '09:30:00'
-        data = df.drop(df.index[(df.time > '17:30:00') | (df.time >= '12:30:00') & (df.time <= '14:00:00')])
-        data = data.drop(data.index[(data.date == '2021/7/20') & (data.no == 20) & (data.room == 1)])
-        data = data.drop(data.index[(data.date == '2021/7/20') & (data.no == 56) & (data.room == 1)])
-        data = data.drop(data.index[(data.date == '2021/7/20') & (data.no == 25) & (data.room == 1)])
-        data = data.drop(data.index[(data.date == '2021/7/29') & (data.no == 33) & (data.room == 1)])
-        data = data.drop(data.index[(data.date == '2021/7/25') & (data.no == 49) & (data.time == '12:00:00')])
-
-    # 标签数据
-    data.loc[(data[y_feature] > 0.5), y_feature] = 2
-    data.loc[((-0.5 <= data[y_feature]) & (data[y_feature] <= 0.5)), y_feature] = 1
-    data.loc[(data[y_feature] < -0.5), y_feature] = 0
-    return data
-
 
 def stat(data):
     max = math.ceil(data.max())
@@ -246,11 +208,33 @@ def count(season, data):
     plt_bar(x3, y3, color='b', width=max_width)
 
 
+def feature(name, color, xlable):
+    data = df.drop_duplicates(subset=['no', name]).sort_values([name])[name]
+    print(np.array(data.drop_duplicates()))
+    bins = data.drop_duplicates().shape[0] - 2
+    avg = sum(data) / len(data)
+    print('均值为' + name + f': {avg}')
+    sns.distplot(data,
+                 bins=bins,
+                 hist=True,
+                 hist_kws={'color': color[0]},
+                 kde_kws={
+                     'color': color[1],
+                     "shade": True,
+                     'linestyle': '--'
+                 },
+                 norm_hist=True)
+    plt.legend()
+    # 显示图形
+    plt.xlabel(xlable)
+    plt.ylabel(u"数据比例")
+    plt.show()
+
+
 if __name__ == '__main__':
     # font()
     # 未经过序列化数据
     df = pd.read_csv('../../DataSet/synthetic.csv', encoding='gbk').dropna(axis=0, how='any', inplace=False)
-    # df = pd.read_csv('../../DataSet/2021.csv', encoding='gbk').dropna(axis=0, how='any', inplace=False)
 
     print(f'数据总量{df.shape[0]}')
     y_feature = 'thermal sensation'
@@ -262,12 +246,19 @@ if __name__ == '__main__':
     summer = df.loc[(df['season'] == 'summer')].reset_index(drop=True)
     print(f'冬季数据数量{winter.shape[0]}')
     print(f'夏季数据数量{summer.shape[0]}')
+
+    print('\n-------------------------------------\n')
     # distribution('2021夏季数据分布图', summer)
-    distribution('2021冬季数据分布图', winter)
-    # distribution('2021数据分布图', df)
     # hist('夏季', summer)
-    hist('冬季', winter)
     # count('夏季', summer)
-    count('冬季', winter)
+    # print('\n-------------------------------------\n')
+
+    # distribution('2021冬季数据分布图', winter)
+    # hist('冬季', winter)
+    # count('冬季', winter)
+    print('\n-------------------------------------\n')
+    color = ['b', 'darkblue']
+    feature('age', color, '年龄')
+    print('\n-------------------------------------\n')
 
 

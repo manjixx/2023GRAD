@@ -21,21 +21,35 @@ def seed_tensorflow(seed=2022):
 
 
 def data_loader():
-    env = np.load('../Dataset/synthetic/env.npy', allow_pickle=True).astype(float)  # ta hr va
-    print(len(env))
-    season = np.load('../Dataset/synthetic/season.npy', allow_pickle=True).astype(int)  # season
-    date = np.load('../Dataset/synthetic/date.npy', allow_pickle=True)  # date
-    body = np.load('../Dataset/synthetic/body.npy', allow_pickle=True).astype(float)  # age height weight bmi
-    # griffith, gender, sensitivity, preference, environment
-    gender = np.load('../Dataset/synthetic/gender.npy', allow_pickle=True)
-    gender = gender[:, 0:2]
-    label = np.load('../Dataset/synthetic/label.npy', allow_pickle=True).astype(int)  # pmv
+    """
+    'male', 'female','young', 'old','short', 'medium', 'tall','thin', 'normal', 'fat',
+    'bmi_l', 'bmi_n', 'bmi_h',  'grf_l', 'grf_n', 'grf_h','sen_l', 'sen_n', 'sen_h',
+    'pre_l', 'pre_n', 'pre_h', 'env_l', 'env_n', 'env_h'
+    """
+    person = np.load('../Dataset/npy/' + filepath + '/person.npy', allow_pickle=True).astype(float)
+    # 'date', 'time', 'season', 'va', 'ta', 'hr'
+    env = np.load('../Dataset/npy/' + filepath + '/env.npy', allow_pickle=True)
+    ta = env[:, 3:6]
+    season = env[:, 2:3]
 
-    # normalization: [ta hr va age height weight bmi]
-    x = np.concatenate((env, body), axis=1)
-    x = scaler.fit_transform(x)
-    # season ta hr va age height weight bmi griffith, gender pmv
-    x = np.concatenate((season, x, gender, label), axis=1)
+    # ta_diff1, ta_diff2
+    diff = np.load('../Dataset/npy/' + filepath + '/diff.npy', allow_pickle=True).astype(float)
+    # 'age_avg', 'height_avg', 'weight_avg', 'bmi_avg'
+    avg = np.load('../Dataset/npy/' + filepath + '/avg.npy', allow_pickle=True).astype(float)
+    # griffith_avg
+    griffith = np.load('../Dataset/npy/' + filepath + '/grf.npy', allow_pickle=True).astype(float)
+    # count
+    count = np.load('../Dataset/npy/' + filepath + '/count.npy', allow_pickle=True)
+    # label
+    label = np.load('../Dataset/npy/' + filepath + '/tsv.npy', allow_pickle=True).astype(float)[:, None]
+
+    # normalization: ['va', 'ta', 'hr', 'height_avg', 'weight_avg', 'bmi_avg'] env, avg
+    normalization = np.concatenate((ta, avg), axis=1)
+
+    normalization = scaler.fit_transform(normalization)
+    # count, person, griffith_avg, season, diff, va, ta, hr, age_avg, height_avg, weight_avg, bmi_avg
+
+    x = np.concatenate((count[:, None], person, griffith[:, None], season, diff, normalization), axis=1)
 
     x_split = []
     y_split = []
@@ -49,6 +63,12 @@ def data_loader():
             y_split.append(y_hat[j + 2: j + 3, :])
 
     x_train, x_test, y_train, y_test = train_test_split(x_split, y_split, test_size=test_size)
+
+    x_train = tf.cast(x_train, dtype=tf.float32)
+    y_train = tf.cast(y_train, dtype=tf.float32)
+    x_test = tf.cast(x_test, dtype=tf.float32)
+    y_test = tf.cast(y_test, dtype=tf.float32)
+
     print(f'x_train shape: {np.array(x_train).shape}')
     print(f'y_train shape: {np.array(y_train).shape}')
     print(f'x_test shape: {np.array(x_test).shape}')
@@ -134,7 +154,7 @@ def train():
               verbose=1,
               shuffle=True)
     checkpoint = tf.train.Checkpoint(classifier=model)
-    path = checkpoint.save('save_model/model_ann.ckpt')
+    path = checkpoint.save('save_model/model_lstm.ckpt')
     print("model saved to %s" % path)
 
 
@@ -166,6 +186,8 @@ if __name__ == '__main__':
     scaler = MinMaxScaler()
 
     test_size, val_size = 0.2, 0.1
+
+    filepath = 'Synthetic'
 
     x_train, y_train, x_test, y_test = data_loader()
     num_epochs, batch_size, learning_rate = 128, 64, 0.008
