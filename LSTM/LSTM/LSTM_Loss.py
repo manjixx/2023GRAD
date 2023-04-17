@@ -204,13 +204,13 @@ def train():
               shuffle=True,
               steps_per_epoch=None)
     checkpoint = tf.train.Checkpoint(classifier=model)
-    path = checkpoint.save('save_model/model_lstm.ckpt')
+    path = checkpoint.save('DM/model_lstm.ckpt')
     print("model saved to %s" % path)
 
 
 def test():
     checkpoint = tf.train.Checkpoint(classifier=model)
-    checkpoint.restore('save_model/model_lstm.ckpt-1').expect_partial()
+    checkpoint.restore('DM/model_lstm.ckpt-1').expect_partial()
     y_pred = model({'feature': x_test}, training=False)
     y_pred = tf.squeeze(y_pred[0], axis=1)
     print(f'y_pred shape:{np.array(y_pred).shape}')

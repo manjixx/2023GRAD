@@ -37,7 +37,7 @@ def hist(xlabel, xticker, data):
     sns.distplot(data,
                  bins=int(bins/xticker),
                  hist=True,
-                 hist_kws={'color': 'darkorange'},
+                 hist_kws={'color': 'red'},
                  kde=False,
                  kde_kws={
                      'color': 'darkorange',
@@ -53,9 +53,14 @@ def hist(xlabel, xticker, data):
                    width=2.0,
                    rotation=45)
     ax.yaxis.set_major_locator(ticker.MultipleLocator(1))
+    if xlabel == 'BMI':
+        plt.xlabel(xlabel, fontproperties='Times New Roman', size=fontsize)
+    else:
+        plt.xlabel(xlabel, size=fontsize)
+    plt.ylabel(u"人数", size=fontsize)
+    plt.yticks(fontproperties='Times New Roman', size=fontsize)  # 设置大小及加粗
+    plt.xticks(fontproperties='Times New Roman', size=fontsize)
 
-    plt.xlabel(xlabel)
-    plt.ylabel(u"人数")
     plt.tight_layout()
     plt.show()
 
@@ -220,6 +225,7 @@ def random_drop(df):
 
 if __name__ == '__main__':
     # font()
+    fontsize = 14
     df = pd.read_csv('../dataset/data/dataset.csv').dropna(axis=0, how='any', inplace=False)
     print(f'数据集总条数{df.shape[0]}')
     print(f'数据集女性数据{df.loc[df["gender"] == 0].shape[0]}')

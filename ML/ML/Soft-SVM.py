@@ -60,6 +60,7 @@ def data_drive(df):
     x_train, x_test, y_train, y_test = train_test(df)
     model = SVC(kernel=kernel, decision_function_shape='ovo')
     model.fit(x_train, y_train)
+
     y_pred = model.predict(x_test)
     accuracy, precision, recall, f1 = evaluating_indicator(y_pred, y_test)
 

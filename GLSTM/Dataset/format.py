@@ -117,17 +117,16 @@ def tocsv(filelist, count):
             if data.shape[0] < count:
                 continue
             date = data['date'].unique()[0]
-            time = t
             # tsv
             hot = data.loc[(data['tsv'] == 2)].shape[0]
             comfort = data.loc[(data['tsv'] == 1)].shape[0]
             cool = data.loc[(data['tsv'] == 0)].shape[0]
             tsv_max = max(hot, comfort, cool)
             hot, comfort, cool = hot / tsv_max, comfort / tsv_max, cool / tsv_max
-            if hot == 1:
-                tsv = 2
-            elif comfort == 1:
+            if comfort == 1 and (hot + cool) <= 0.2:
                 tsv = 1
+            elif hot > cool:
+                tsv = 2
             else:
                 tsv = 0
             # ta hr va
@@ -156,7 +155,7 @@ def tocsv(filelist, count):
                    sensitivity_low, sensitivity_normal, sensitivity_high,
                    preference_low, preference_normal, preference_high,
                    environment_low, environment_normal, environment_high,
-                   date, time, ta, hr, season, va, diff1, diff2,
+                   date, t, ta, hr, season, va, diff1, diff2,
                    age_avg, height_avg, weight_avg, bmi_avg, griffith_avg,
                    tsv]
             res_list.append(res)

@@ -193,8 +193,8 @@ if __name__ == '__main__':
     gender = df[gender_feature].reset_index(drop=True)
     label = df[y_feature].reset_index(drop=True)
 
-    np.save('data/body.npy', body)
-    np.save('data/env.npy', env)
-    np.save('data/gender.npy', gender)
-    np.save('data/season.npy', season)
-    np.save('data/label.npy', label)
+    # np.save('data/body.npy', body)
+    # np.save('data/env.npy', env)
+    # np.save('data/gender.npy', gender)
+    # np.save('data/season.npy', season)
+    # np.save('data/label.npy', label)

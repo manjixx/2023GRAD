@@ -182,16 +182,16 @@ def R_loss(y_true, input):
     # ta 映射
     for i in range(0, len(ta)):
         if season[i] == 0:  # 夏季
-            if 26.5 >= ta[i] >= 24:
+            if 26 >= ta[i] >= 25:
                 y_exp.append(1)
-            elif ta[i] < 24:
+            elif ta[i] < 25:
                 y_exp.append(0)
             else:
                 y_exp.append(2)
         else:
-            if 25.5 >= ta[i] >= 22:
+            if 25 >= ta[i] >= 24:
                 y_exp.append(1)
-            elif ta[i] < 22:
+            elif ta[i] < 24:
                 y_exp.append(0)
             else:
                 y_exp.append(2)
@@ -240,13 +240,13 @@ def train():
               shuffle=True,
               steps_per_epoch=None)
     checkpoint = tf.train.Checkpoint(classifier=model)
-    path = checkpoint.save('save_model/phy_lstm.ckpt')
+    path = checkpoint.save('DM/phy_lstm.ckpt')
     print("model saved to %s" % path)
 
 
 def test():
     checkpoint = tf.train.Checkpoint(classifier=model)
-    checkpoint.restore('save_model/phy_lstm.ckpt-1').expect_partial()
+    checkpoint.restore('DM/phy_lstm.ckpt-1').expect_partial()
     y_pred = model({'feature': x_test}, training=False)
     y_pred = tf.squeeze(y_pred[0], axis=1)
     print(f'y_pred shape:{np.array(y_pred).shape}')

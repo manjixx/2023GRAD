@@ -87,17 +87,3 @@ def weight_griffith(df):
     w2 = alpha * p2 + beta * p5
     w3 = alpha * p3 + beta * p6
     return round(w1, 2), round(w2, 2), round(w3, 2)
-
-
-def concat(w, df, index):
-    griffith1, griffith2, griffith3 = split(df, index)
-    w1 = pd.DataFrame({'w': [w[0]] * griffith1.shape[0]})
-    w2 = pd.DataFrame({'w': [w[1]] * griffith2.shape[0]})
-    w3 = pd.DataFrame({'w': [w[2]] * griffith3.shape[0]})
-
-    df1 = pd.concat([griffith1, w1], axis=0)
-    df2 = pd.concat([griffith2, w2], axis=0)
-    df3 = pd.concat([griffith3, w3], axis=0)
-
-    df = pd.concat([df1, df2, df3], axis=0)
-    return df

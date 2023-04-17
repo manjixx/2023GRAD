@@ -35,7 +35,9 @@ def data_loader():
     person = np.load('../Dataset/npy/' + filepath + '/person.npy', allow_pickle=True).astype(float)
     # 'date', 'time', 'season', 'va', 'ta', 'hr'
     env = np.load('../Dataset/npy/' + filepath + '/env.npy', allow_pickle=True)
-    ta = env[:, 3:6]
+    ta = env[:, 4:6]
+    va = env[:, 3:4]
+    print(ta)
     season = env[:, 2:3]
 
     # ta_diff1, ta_diff2
@@ -49,13 +51,13 @@ def data_loader():
     # label
     label = np.load('../Dataset/npy/' + filepath + '/tsv.npy', allow_pickle=True).astype(float)[:, None]
 
-    # normalization: ['va', 'ta', 'hr', 'height_avg', 'weight_avg', 'bmi_avg'] env, avg
+    # normalization: ['ta', 'hr', 'height_avg', 'weight_avg', 'bmi_avg'] env, avg
     normalization = np.concatenate((ta, avg), axis=1)
 
     normalization = scaler.fit_transform(normalization)
     # count, person, griffith_avg, season, diff, va, ta, hr, age_avg, height_avg, weight_avg, bmi_avg
 
-    x = np.concatenate((count[:, None], person, griffith[:, None], season, diff, normalization), axis=1)
+    x = np.concatenate((count[:, None], person, griffith[:, None], season, diff, va, normalization), axis=1)
 
     x_split = []
     y_split = []
@@ -107,10 +109,11 @@ class LSTMClassifier(tf.keras.Model):
 
     def call(self, inputs, training=None, mask=None):
         # 1, 25, 1 , 1, 2, 1, 1, 1, 1, 1, 1, 1,1
-        # count, person, griffith_avg, season, diff, va, ta, hr, age_avg, height_avg, weight_avg, bmi_avg
+        # count0, person25, griffith_avg26, season27, diff29, va30, ta31, hr32,
+        # age_avg33, height_avg34, weight_avg35, bmi_avg36
         data = inputs['feature']
-        body = data[0:, 0:, 33:36]
-        env = data[0:, 0:, 27:33]
+        body = data[0:, 0:, 33:37]
+        env = data[0:, 0:, 28:33]
         Ta = data[0:, 0:, 31:32]
         Pa = tf.math.log1p(Ta)
 
@@ -138,6 +141,7 @@ class LSTMClassifier(tf.keras.Model):
         s_input = self.drop(S, training=training)
         S = self.dense_S2(s_input)
 
+
         # M, Tsk, Psk, Pa, S
         # count, person, griffith_avg, season, diff, va, ta, hr, age_avg, height_avg, weight_avg, bmi_avg
         lstm_input = []
@@ -146,6 +150,7 @@ class LSTMClassifier(tf.keras.Model):
 
         lstm_input = self.drop(lstm_input, training=training)
         lstm = self.lstm(lstm_input)
+
 
         dense = self.dense_PMV1(lstm)
         dense = self.drop(dense, training=training)
@@ -173,7 +178,7 @@ class LSTMClassifier(tf.keras.Model):
 def R_loss(y_true, input):
     # season, diff1, diff2, va, ta, hr, age_avg, height_avg, weight_avg, bmi_avg, y_pred
     input = tf.squeeze(input, axis=1)
-    data = scaler.inverse_transform(input[:, 3:10])
+    data = scaler.inverse_transform(input[:, 4:10])
     ta = data[:, 4:5]
     # ta hr va age height weight bmi griffith gender pmv y_pred
     y_pred = input[:, 10:]
@@ -182,16 +187,16 @@ def R_loss(y_true, input):
     # ta 映射
     for i in range(0, len(ta)):
         if season[i] == 0:  # 夏季
-            if 26.5 >= ta[i] >= 24:
+            if 26 >= ta[i] >= 25:
                 y_exp.append(1)
-            elif ta[i] < 24:
+            elif ta[i] < 25:
                 y_exp.append(0)
             else:
                 y_exp.append(2)
         else:
-            if 25.5 >= ta[i] >= 22:
+            if 25 >= ta[i] >= 24:
                 y_exp.append(1)
-            elif ta[i] < 22:
+            elif ta[i] < 24:
                 y_exp.append(0)
             else:
                 y_exp.append(2)
@@ -240,13 +245,13 @@ def train():
               shuffle=True,
               steps_per_epoch=None)
     checkpoint = tf.train.Checkpoint(classifier=model)
-    path = checkpoint.save('save_model/phy_lstm_loss.ckpt')
+    path = checkpoint.save('DM/phy_lstm_loss.ckpt')
     print("model saved to %s" % path)
 
 
 def test():
     checkpoint = tf.train.Checkpoint(classifier=model)
-    checkpoint.restore('save_model/phy_lstm_loss.ckpt-1').expect_partial()
+    checkpoint.restore('DM/phy_lstm_loss.ckpt-1').expect_partial()
     y_pred = model({'feature': x_test}, training=False)
     y_pred = tf.squeeze(y_pred[0], axis=1)
     print(f'y_pred shape:{np.array(y_pred).shape}')
@@ -276,7 +281,7 @@ if __name__ == '__main__':
 
     num_epochs, batch_size, learning_rate = 128, 64, 0.008
 
-    alpha, beta = 0.3, 1.5
+    alpha, beta = 0.3, 1
 
     x_train, y_train, x_test, y_test = data_loader()
 

@@ -42,8 +42,10 @@ def distribution(title, data):
     plt.rcParams['font.sans-serif'] = ['SimHei']
     plt.rcParams['axes.unicode_minus'] = False
     plt.title(title)
-    plt.xlabel("temp(℃)")
-    plt.ylabel("humid(%)")
+    plt.yticks(fontproperties='Times New Roman', size=fontsize)  # 设置大小及加粗
+    plt.xticks(fontproperties='Times New Roman', size=fontsize)
+    plt.xlabel(u"温度(℃)", fontsize=fontsize)
+    plt.ylabel(u"数据比例", fontsize=fontsize)
     axes.legend((label1, label2, label3), ("hot", "cool", "comfort"), loc=3)
     plt.show()
 
@@ -65,12 +67,11 @@ def hist(season, data):
                      'linestyle': '--'
                  },
                  norm_hist=True)
-    plt.xlabel(u"温度(℃)")
-    # max = math.ceil(hot_ta.max())
-    # min = math.floor(hot_ta.min())
-    # x = np.arange(min, max, 1)
-    # plt.xticks(x, rotation=45)
-    plt.ylabel(u"数据比例")
+    plt.yticks(fontproperties='Times New Roman', size=fontsize)  # 设置大小及加粗
+    plt.xticks(fontproperties='Times New Roman', size=fontsize)
+    plt.xlabel(u"温度(℃)", fontsize=fontsize)
+    plt.ylabel(u"数据比例", fontsize=fontsize)
+
     # plt.title(u'2021年'+season+'热不适温度分布')
     plt.show()
 
@@ -85,8 +86,10 @@ def hist(season, data):
                      'linestyle': '--'
                  },
                  norm_hist=True)
-    plt.xlabel(u"温度(℃)")
-    plt.ylabel(u"数据比例")
+    plt.yticks(fontproperties='Times New Roman', size=fontsize)  # 设置大小及加粗
+    plt.xticks(fontproperties='Times New Roman', size=fontsize)
+    plt.xlabel(u"温度(℃)", fontsize=fontsize)
+    plt.ylabel(u"数据比例", fontsize=fontsize)
     # plt.title(f'2021年{season}舒适温度分布')
     plt.show()
 
@@ -101,9 +104,10 @@ def hist(season, data):
                      'linestyle': '--'
                  },
                  norm_hist=True)
-    plt.xlabel(u"温度(℃)")
-    plt.ylabel(u"数据比例")
-    # plt.title(f'2021年{season}冷不适温度分布')
+    plt.yticks(fontproperties='Times New Roman', size=fontsize)  # 设置大小及加粗
+    plt.xticks(fontproperties='Times New Roman', size=fontsize)
+    plt.xlabel(u"温度(℃)", fontsize=fontsize)
+    plt.ylabel(u"数据比例", fontsize=fontsize)
     plt.show()
 
     bins = max(math.ceil(hot_ta.max()) - math.floor(hot_ta.min()),
@@ -117,7 +121,7 @@ def hist(season, data):
 
     data = [hot_ta, com_ta, cool_ta]
     plt.hist(x=data,  # 绘图数据
-             bins=bins,  # 指定直方图的条形数为20个
+             bins=25,  # 指定直方图的条形数为20个
              edgecolor='w',  # 指定直方图的边框色
              color=['r', 'g', 'b'],  # 指定直方图的填充色
              label=['热不适', '舒适', '冷不适'],  # 为直方图呈现图例
@@ -128,8 +132,10 @@ def hist(season, data):
     # 显示图例
     plt.legend()
     # 显示图形
-    plt.xlabel(u"温度(℃)")
-    plt.ylabel(u"数据比例")
+    plt.yticks(fontproperties='Times New Roman', size=fontsize)  # 设置大小及加粗
+    plt.xticks(fontproperties='Times New Roman', size=fontsize)
+    plt.xlabel(u"温度(℃)", fontsize=fontsize)
+    plt.ylabel(u"数据比例", fontsize=fontsize)
     # plt.title(f'2021年{season}所有数据温度分布')
     plt.show()
 
@@ -179,6 +185,10 @@ def plt_bar(x, y, color, width):
     ax = plt.axes()
     ax.xaxis.set_major_locator(ticker.MultipleLocator(1))
     ax.yaxis.set_major_locator(ticker.MultipleLocator(0.05))
+    plt.yticks(fontproperties='Times New Roman', size=fontsize)  # 设置大小及加粗
+    plt.xticks(fontproperties='Times New Roman', size=fontsize)
+    plt.xlabel(u"温度(℃)", fontsize=fontsize)
+    plt.ylabel(u"数据比例", fontsize=fontsize)
 
     plt.grid(True, axis='y', ls='dashed')
 
@@ -232,6 +242,7 @@ def feature(name, color, xlable):
 
 
 if __name__ == '__main__':
+    fontsize = 12
     # font()
     # 未经过序列化数据
     df = pd.read_csv('../../DataSet/synthetic.csv', encoding='gbk').dropna(axis=0, how='any', inplace=False)
@@ -249,16 +260,16 @@ if __name__ == '__main__':
 
     print('\n-------------------------------------\n')
     # distribution('2021夏季数据分布图', summer)
-    # hist('夏季', summer)
+    hist('夏季', summer)
     # count('夏季', summer)
     # print('\n-------------------------------------\n')
 
     # distribution('2021冬季数据分布图', winter)
-    # hist('冬季', winter)
+    hist('冬季', winter)
     # count('冬季', winter)
     print('\n-------------------------------------\n')
-    color = ['b', 'darkblue']
-    feature('age', color, '年龄')
+    # color = ['b', 'darkblue']
+    # feature('age', color, '年龄')
     print('\n-------------------------------------\n')
 
 

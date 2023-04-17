@@ -175,13 +175,13 @@ def train():
               verbose=1,
               shuffle=True)
     checkpoint = tf.train.Checkpoint(classifier=model)
-    path = checkpoint.save('save_model/model_ann.ckpt')
+    path = checkpoint.save('DM/model_ann.ckpt')
     print("model saved to %s" % path)
 
 
 def test():
     checkpoint = tf.train.Checkpoint(classifier=model)
-    checkpoint.restore('save_model/model_ann.ckpt-1').expect_partial()
+    checkpoint.restore('DM/model_ann.ckpt-1').expect_partial()
     y_pred = model({'feature': test_feature}, training=False)
     y_pred = np.argmax(y_pred[0], axis=1)
     print('准确率：' + str(accuracy_score(y_pred, test_label)))

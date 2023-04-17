@@ -250,7 +250,7 @@ if __name__ == '__main__':
     # font()
     # 未经过序列化数据
     df = pd.read_csv('../../DataSet/synthetic.csv', encoding='gbk').dropna(axis=0, how='any', inplace=False)
-    # df = pd.read_csv('../../DataSet/2021.csv', encoding='gbk').dropna(axis=0, how='any', inplace=False)
+    # df = pd.read_csv('../../ODataSet/2021.csv', encoding='gbk').dropna(axis=0, how='any', inplace=False)
 
     print(f'数据总量{df.shape[0]}')
     y_feature = 'thermal sensation'
