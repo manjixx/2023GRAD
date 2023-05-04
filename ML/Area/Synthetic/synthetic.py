@@ -106,8 +106,8 @@ def person():
 def synthetic(person):
     res = []
     for p in person:
-        for ta in np.arange(20, 30, 0.5):
-            for hr in np.arange(50, 70, 0.5):
+        for ta in np.arange(20, 30.5, 0.5):
+            for hr in np.arange(50, 75.5, 0.5):
                 r = []
                 r.extend(p)
                 r.append(ta)

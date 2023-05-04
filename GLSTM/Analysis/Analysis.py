@@ -9,9 +9,7 @@ import matplotlib.ticker as ticker
 import warnings
 warnings.filterwarnings('ignore')
 
-plt.rcParams['font.sans-serif'] = ['Microsoft YaHei']
-plt.rcParams['axes.unicode_minus'] = False
-sns.set(style="white", palette='deep', font='Microsoft YaHei', font_scale=0.8)
+
 
 
 def font():
@@ -241,8 +239,68 @@ def feature(name, color, xlable):
     plt.show()
 
 
+def plt_dis(df):
+    age = df.drop_duplicates(subset=['no', 'age'])['age']
+    height = df.drop_duplicates(subset=['no', 'height'])['height']
+    weight = df.drop_duplicates(subset=['no', 'weight'])['weight']
+    griffith = df.drop_duplicates(subset=['no', 'griffith'])['griffith']
+    print(age.mean(), height.mean(), weight.mean(), griffith.mean())
+    fig, axs = plt.subplots(2, 2, figsize=(8, 6), dpi=80)
+    axs = axs.ravel()
+    for i in range(0, len(axs)):
+        axs[i].tick_params(axis="both", labelsize=fontsize)
+        axs[i].set_ylabel(u"数据比例", fontdict={'size': fontsize})
+
+    bins = math.ceil(age.max()) - math.floor(age.min())
+    axs[0].hist(x=age,  # 绘图数据
+             bins=bins,  # 指定直方图的条形数为20个
+             edgecolor='w',  # 指定直方图的边框色
+             color=['r'],  # 指定直方图的填充色
+             density=True,  # 是否将纵轴设置为密度，即频率
+             alpha=0.8,  # 透明度
+             rwidth=0.8,  # 直方图宽度百分比：0-1
+             stacked=True)  # 当有多个数据时，是否需要将直方图呈堆叠摆放，默认水平摆放
+    axs[0].set_xlabel(u"年龄", fontdict={'size': fontsize})
+    bins = math.ceil(height.max()) - math.floor(height.min()) - 20
+    axs[1].hist(x=height,  # 绘图数据
+                bins=bins,  # 指定直方图的条形数为20个
+                edgecolor='w',  # 指定直方图的边框色
+                color=['g'],  # 指定直方图的填充色
+                density=True,  # 是否将纵轴设置为密度，即频率
+                alpha=0.8,  # 透明度
+                rwidth=0.8,  # 直方图宽度百分比：0-1
+                stacked=True)  # 当有多个数据时，是否需要将直方图呈堆叠摆放，默认水平摆放
+    axs[1].set_xlabel(u"身高", fontdict={'size': fontsize})
+    bins = math.ceil(weight.max()) - math.floor(weight.min()) - 35
+    axs[2].hist(x=weight,  # 绘图数据
+                bins=bins,  # 指定直方图的条形数为20个
+                edgecolor='w',  # 指定直方图的边框色
+                color=['b'],  # 指定直方图的填充色
+                density=True,  # 是否将纵轴设置为密度，即频率
+                alpha=0.8,  # 透明度
+                rwidth=0.8,  # 直方图宽度百分比：0-1
+                stacked=True)  # 当有多个数据时，是否需要将直方图呈堆叠摆放，默认水平摆放
+    axs[2].set_xlabel(u"体重", fontdict={'size': fontsize})
+    bins = math.ceil(griffith.max()) - math.floor(griffith.min())
+    axs[3].hist(x=griffith,  # 绘图数据
+                bins=bins,  # 指定直方图的条形数为20个
+                edgecolor='w',  # 指定直方图的边框色
+                color=['m'],  # 指定直方图的填充色
+                density=True,  # 是否将纵轴设置为密度，即频率
+                alpha=0.8,  # 透明度
+                rwidth=0.8,  # 直方图宽度百分比：0-1
+                stacked=True)  # 当有多个数据时，是否需要将直方图呈堆叠摆放，默认水平摆放
+    axs[3].set_xlabel(u"客观热敏感度", fontdict={'size': fontsize})
+    fig.tight_layout()  # 调整整体空白
+    plt.subplots_adjust(wspace=0.3, hspace=0.4)  # 调整子图间距
+    plt.show()
+
+
 if __name__ == '__main__':
     fontsize = 12
+    plt.rcParams['font.sans-serif'] = ['Microsoft YaHei']
+    plt.rcParams['axes.unicode_minus'] = False
+    sns.set(style="white", palette='deep', font='Microsoft YaHei', font_scale=0.8)
     # font()
     # 未经过序列化数据
     df = pd.read_csv('../../DataSet/synthetic.csv', encoding='gbk').dropna(axis=0, how='any', inplace=False)
@@ -252,24 +310,24 @@ if __name__ == '__main__':
     df.loc[(df[y_feature] > 0.5), y_feature] = 2
     df.loc[((-0.5 <= df[y_feature]) & (df[y_feature] <= 0.5)), y_feature] = 1
     df.loc[(df[y_feature] < -0.5), y_feature] = 0
-
-    winter = df.loc[(df['season'] == 'winter')].reset_index(drop=True)
-    summer = df.loc[(df['season'] == 'summer')].reset_index(drop=True)
-    print(f'冬季数据数量{winter.shape[0]}')
-    print(f'夏季数据数量{summer.shape[0]}')
-
-    print('\n-------------------------------------\n')
-    # distribution('2021夏季数据分布图', summer)
-    hist('夏季', summer)
-    # count('夏季', summer)
+    plt_dis(df)
+    # winter = df.loc[(df['season'] == 'winter')].reset_index(drop=True)
+    # summer = df.loc[(df['season'] == 'summer')].reset_index(drop=True)
+    # print(f'冬季数据数量{winter.shape[0]}')
+    # print(f'夏季数据数量{summer.shape[0]}')
+    #
     # print('\n-------------------------------------\n')
-
-    # distribution('2021冬季数据分布图', winter)
-    hist('冬季', winter)
-    # count('冬季', winter)
-    print('\n-------------------------------------\n')
-    # color = ['b', 'darkblue']
-    # feature('age', color, '年龄')
-    print('\n-------------------------------------\n')
+    # # distribution('2021夏季数据分布图', summer)
+    # hist('夏季', summer)
+    # # count('夏季', summer)
+    # # print('\n-------------------------------------\n')
+    #
+    # # distribution('2021冬季数据分布图', winter)
+    # hist('冬季', winter)
+    # # count('冬季', winter)
+    # print('\n-------------------------------------\n')
+    # # color = ['b', 'darkblue']
+    # # feature('age', color, '年龄')
+    # print('\n-------------------------------------\n')
 
 

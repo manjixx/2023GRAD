@@ -15,7 +15,7 @@ if __name__ == '__main__':
     df = pd.read_csv('../dataset/synthetic.csv').dropna(axis=0, how='any', inplace=False)
     # 季节
     m = 1.1
-    clo = 0.5
+    clo = 0.6
     va = 0.2
     data = np.array(df[['ta', 'hr']].drop_duplicates(subset=['ta', 'hr'], keep='first', inplace=False))
 
@@ -28,12 +28,11 @@ if __name__ == '__main__':
         ta = data[i][0]
         rh = data[i][1]
         # vel =
-        vel = 0.06
             # data[i][2]
         res.append(ta)
         res.append(rh)
 
-        pmv_result = pmv_model(M=m * 58.15, clo=clo, tr=ta, ta=ta, vel=vel, rh=rh)
+        pmv_result = pmv_model(M=m * 58.15, clo=clo, tr=ta, ta=ta, vel=va, rh=rh)
         pmv_pred.append(round(pmv_result, 2))
 
         if pmv_result > 0.5:
